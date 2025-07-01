@@ -2,33 +2,142 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Replay: Giri vs Hou | Tata Steel 2018</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lessons : Chess Tackler</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to bottom right, rgba(229, 231, 235, 0.3), rgba(243, 244, 246, 0.3)), url('chess-texture.png');
+      background-blend-mode: overlay;
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Logo hover glow */
+    .logo-glow {
+      transition: box-shadow 0.3s ease;
+    }
+
+    .logo-glow:hover {
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    }
+
+    /* Collapsible transition */
+    .collapsible {
+      transition: max-height 0.5s ease, opacity 0.4s ease;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+    }
+
+    .collapsible.open {
+      max-height: 800px;
+      opacity: 1;
+    }
+  </style>
 </head>
-<body class="bg-gray-950 text-white flex items-center justify-center min-h-screen p-6">
+<body class="text-gray-800 min-h-screen">
 
-  <div class="max-w-4xl w-full">
-    <!-- Title -->
-    <h1 class="text-2xl md:text-3xl font-bold text-center text-blue-400 mb-6">
-      🎥 Match Replay: Anish Giri vs Hou Yifan<br><span class="text-sm text-gray-400">Tata Steel 2018</span>
-    </h1>
-
-    <!-- Video Player -->
-    <div class="relative bg-black rounded-lg overflow-hidden shadow-lg">
-      <video 
-        controls 
-        preload="metadata"
-        class="w-full h-auto rounded-lg"
-        poster="preview.jpg"
-      >
-        <source src="01. Giri, A. - Hou, Y. (Tata Steel 2018).mp4" type="video/mp4">
-        <p class="p-4 text-red-500 bg-gray-800">
-          Your browser does not support HTML5 video. Please try a modern browser.
-        </p>
-      </video>
+  <!-- Header -->
+  <header class="bg-gray-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <!-- ✅ Logo inside white circle with hover glow -->
+        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md logo-glow">
+          <img src="CT logo.png" alt="Logo" class="w-7 h-7 object-contain" />
+        </div>
+        <h1 class="text-xl font-bold tracking-wide">Chess Tackler</h1>
+        <span class="ml-2 text-xs bg-yellow-400 text-black font-bold px-2 py-1 rounded-full shadow-inner">PREMIUM</span>
+      </div>
+      <span class="text-sm text-gray-300 hidden md:block italic">Exclusive Lessons by Grandmasters</span>
     </div>
-  </div>
+  </header>
+
+  <!-- Main -->
+  <main class="flex items-center justify-center px-4 py-12">
+    <div class="max-w-5xl w-full glass rounded-3xl shadow-2xl p-8 fade-in">
+
+      <!-- Title -->
+      <h2 class="text-3xl font-bold text-center text-blue-600 mb-2">🎥 Master Class : Magnus Carlsen</h2>
+      <p class="text-center text-gray-500 font-medium mb-8">Credit: <span class="italic">Chessbase</span></p>
+
+      <!-- Lessons -->
+      <div class="space-y-10">
+        <div id="lessonContainer"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Script -->
+  <script>
+    const lessons = [
+      ["Openings_1_White_(by Huschenbeth)", "01. Match1.mp4", "preview1.jpg"],
+      ["Openings_2_Black_(by Huschenbeth)", "02. Match2.mp4", "preview2.jpg"],
+      ["Openings_3_White in the WCh matches_(by Huschenbeth)", "03. Match3.mp4", "preview3.jpg"],
+      ["Openings_4_Black in the WCh matches_(by Huschenbeth)", "04. Match4.mp4", "preview4.jpg"],
+      ["Strategy_1_(by Marin)", "05. Match5.mp4", "preview5.jpg"],
+      ["Strategy_2_(by Marin)", "06. Match6.mp4", "preview6.jpg"],
+      ["Strategy_3_(by Marin)", "07. Match7.mp4", "preview7.jpg"],
+      ["Strategy_4_(by Marin)", "08. Match8.mp4", "preview8.jpg"],
+      ["Strategy_5_(by Marin)", "09. Match9.mp4", "preview9.jpg"],
+      ["Strategy_6_(by Marin)", "10. Match10.mp4", "preview10.jpg"]
+    ];
+
+    const container = document.getElementById("lessonContainer");
+
+    lessons.forEach((lesson, index) => {
+      const id = index + 1;
+      const [title, src, poster] = lesson;
+
+      const html = `
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-semibold text-lg text-gray-700">${title}</span>
+            <button onclick="toggleMatch(${id})"
+              class="bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-black font-semibold px-5 py-2 rounded-full shadow-lg transition-all duration-300 flex items-center gap-2">
+              ▶️ Watch
+            </button>
+          </div>
+          <div id="videoContainer${id}" class="collapsible bg-black rounded-lg overflow-hidden shadow-md fade-in">
+            <video controls preload="metadata" class="w-full h-auto rounded-lg" poster="${poster}">
+              <source src="${src}" type="video/mp4" />
+            </video>
+          </div>
+        </div>
+      `;
+      container.insertAdjacentHTML("beforeend", html);
+    });
+
+    function toggleMatch(id) {
+      const video = document.getElementById("videoContainer" + id);
+      video.classList.toggle("open");
+    }
+  </script>
 
 </body>
 </html>
