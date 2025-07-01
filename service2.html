@@ -22,6 +22,51 @@
       </div>
     </div>
   </header>
+<canvas id="bg-canvas" class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none"></canvas>
+
+<script>
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let circles = [];
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  for (let i = 0; i < 50; i++) {
+    circles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 8 + 2,
+      dx: (Math.random() - 0.5) * 0.3,
+      dy: (Math.random() - 0.5) * 0.3,
+      alpha: Math.random() * 0.3 + 0.2,
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let c of circles) {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(59,130,246,${c.alpha})`; // Tailwind blue-500
+      ctx.fill();
+
+      c.x += c.dx;
+      c.y += c.dy;
+
+      if (c.x < 0 || c.x > canvas.width) c.dx = -c.dx;
+      if (c.y < 0 || c.y > canvas.height) c.dy = -c.dy;
+    }
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+</script>
 
    <!-- Premium Title Centered -->
 <div class="text-center py-12 bg-gradient-to-b from-white to-blue-50 rounded-xl shadow-sm max-w-4xl mx-auto">
