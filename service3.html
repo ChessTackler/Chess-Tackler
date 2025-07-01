@@ -20,23 +20,39 @@
       100% { opacity: 0.8; transform: scale(1); }
     }
 
-    .gradient-glow {
+    .premium-glow {
       position: relative;
       z-index: 1;
     }
 
-    .gradient-glow::before {
+    .premium-glow::before {
       content: "";
       position: absolute;
-      inset: 0;
+      inset: -4px;
       z-index: -1;
       border-radius: inherit;
-      background: radial-gradient(circle at center,
-        #f43f5e, #3b82f6, #10b981, #facc15, #ec4899
+      background: radial-gradient(
+        circle,
+        rgba(244, 63, 94, 0.35),
+        rgba(59, 130, 246, 0.25),
+        rgba(16, 185, 129, 0.25),
+        rgba(250, 204, 21, 0.25),
+        rgba(236, 72, 153, 0.25)
       );
-      opacity: 0.5;
-      filter: blur(12px);
-      animation: pulse-glow 4s infinite;
+      filter: blur(8px);
+      opacity: 0.8;
+      animation: premium-pulse 6s ease-in-out infinite;
+    }
+
+    @keyframes premium-pulse {
+      0%, 100% {
+        opacity: 0.7;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.04);
+      }
     }
 
     .glow-btn {
@@ -122,12 +138,12 @@
     <!-- Left Column -->
     <div>
       <a href="Puzzlemania.html">
-        <span id="highlight-badge" class="inline-block bg-yellow-100 text-yellow-900 text-xs px-2 py-1 rounded-full mb-4 hover:bg-yellow-200 transition gradient-glow">
+        <span id="highlight-badge" class="inline-block bg-yellow-100 text-yellow-900 text-xs px-2 py-1 rounded-full mb-4 hover:bg-yellow-200 transition premium-glow">
           New · Static Puzzles
         </span>
       </a>
 
-      <h1 class="text-4xl font-bold mb-4 leading-tight gradient-glow">
+      <h1 class="text-4xl font-bold mb-4 leading-tight text-yellow-100">
         Uncover Insights,<br>Dominate the Board.
       </h1>
 
@@ -144,16 +160,16 @@
 
       <!-- Feature Links -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-yellow-200 text-sm font-medium">
-        <a href="#" class="hover:underline flex items-center gap-2 gradient-glow">
+        <a href="#" class="hover:underline flex items-center gap-2 premium-glow">
           <i data-lucide="chess"></i> Opening Explorer
         </a>
-        <a href="Lessons.html" class="hover:underline flex items-center gap-2 gradient-glow">
+        <a href="Lessons.html" class="hover:underline flex items-center gap-2 premium-glow">
           <i data-lucide="book-open"></i> Lessons by Grandmasters
         </a>
-        <a href="service1.html" class="hover:underline flex items-center gap-2 gradient-glow">
+        <a href="service1.html" class="hover:underline flex items-center gap-2 premium-glow">
           <i data-lucide="puzzle"></i> Puzzles
         </a>
-        <a href="service2.html" class="hover:underline flex items-center gap-2 gradient-glow">
+        <a href="service2.html" class="hover:underline flex items-center gap-2 premium-glow">
           <i data-lucide="globe"></i> Global Leaderboard
         </a>
       </div>
