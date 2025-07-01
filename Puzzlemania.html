@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Static Puzzles | Chess Tackler</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+
+  <div class="max-w-7xl mx-auto px-6 py-10">
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-4xl font-bold text-blue-700">♟️ Static Puzzles</h1>
+      <a href="service1.html" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition">
+        ← Back
+      </a>
+    </div>
+
+    <!-- Puzzle Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+
+      <!-- Puzzle 1 -->
+      <div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+        <img src="PZ1.jpg" alt="Puzzle 1" class="w-full rounded-md mb-4" />
+        <button onclick="toggleSolution('solution1')"
+                class="w-full bg-blue-100 text-blue-800 font-medium py-2 rounded-md hover:bg-blue-200 transition">
+          Show Solution
+        </button>
+        <p id="solution1" class="mt-4 text-green-700 font-semibold hidden">1. Re8+ Bf8 2.Bh7+ Kh8 3. Rxf8#</p>
+      </div>
+
+      <!-- Puzzle 2 -->
+      <div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+        <img src="PZ2.jpg" alt="Puzzle 2" class="w-full rounded-md mb-4" />
+        <button onclick="toggleSolution('solution2')"
+                class="w-full bg-blue-100 text-blue-800 font-medium py-2 rounded-md hover:bg-blue-200 transition">
+          Show Solution
+        </button>
+        <p id="solution2" class="mt-4 text-green-700 font-semibold hidden">1. Qe8+ Nf8 2.Qxf8#</p>
+      </div>
+
+      <!-- Puzzle 3 -->
+      <div class="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
+        <img src="PZ3.png" alt="Puzzle 3" class="w-full rounded-md mb-4" />
+        <button onclick="toggleSolution('solution3')"
+                class="w-full bg-blue-100 text-blue-800 font-medium py-2 rounded-md hover:bg-blue-200 transition">
+          Show Solution
+        </button>
+        <p id="solution3" class="mt-4 text-green-700 font-semibold hidden">1...Rxf3 2.Qxf3 Qxh4+ 3.Kg2 Qxe1</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Toggle Script -->
+  <script>
+    function toggleSolution(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle("hidden");
+    }
+  </script>
+
+</body>
+</html>
