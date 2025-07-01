@@ -13,21 +13,64 @@
       50% { transform: translateY(-8px); }
     }
 
-    .float-text {
-      animation: float 3s ease-in-out infinite;
+    @keyframes pulse-glow {
+      0% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 0.8; transform: scale(1); }
     }
 
-    .glow-text {
-      text-shadow: 0 0 8px rgba(59, 130, 246, 0.6), 0 0 12px rgba(59, 130, 246, 0.4);
+    .gradient-glow {
+      position: relative;
+      z-index: 1;
     }
 
-    .glow-bg {
-      background: linear-gradient(135deg, #e0f2fe, #fff);
-      box-shadow: 0 4px 60px rgba(59, 130, 246, 0.2);
+    .gradient-glow::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      background: radial-gradient(circle at center,
+        #f43f5e,   /* red-pink */
+        #3b82f6,   /* blue */
+        #10b981,   /* green */
+        #facc15,   /* yellow */
+        #ec4899    /* pink */
+      );
+      opacity: 0.5;
+      filter: blur(12px);
+      animation: pulse-glow 4s infinite;
     }
 
     .glow-btn {
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.6), 0 0 20px rgba(59, 130, 246, 0.4);
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .glow-btn::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      z-index: -1;
+      background: conic-gradient(
+        from 0deg,
+        #f43f5e,
+        #3b82f6,
+        #10b981,
+        #facc15,
+        #ec4899,
+        #f43f5e
+      );
+      animation: spin 6s linear infinite;
+      filter: blur(10px);
+      opacity: 0.6;
+      border-radius: 9999px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     #particles-js {
@@ -70,12 +113,12 @@
     <!-- Left Column -->
     <div>
       <a href="Puzzlemania.html">
-        <span id="highlight-badge" class="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full mb-4 hover:bg-blue-200 transition glow-text">
+        <span id="highlight-badge" class="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full mb-4 hover:bg-blue-200 transition gradient-glow">
           New · Static Puzzles
         </span>
       </a>
 
-      <h1 class="text-4xl font-bold mb-4 leading-tight float-text glow-text">
+      <h1 class="text-4xl font-bold mb-4 leading-tight float-text gradient-glow">
         Uncover Insights,<br>Dominate the Board.
       </h1>
 
@@ -92,16 +135,16 @@
 
       <!-- Feature Links -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-blue-600 text-sm font-medium">
-        <a href="#" class="hover:underline flex items-center gap-2 glow-text">
+        <a href="#" class="hover:underline flex items-center gap-2 gradient-glow">
           <i data-lucide="chess"></i> Opening Explorer
         </a>
-        <a href="Lessons.html" class="hover:underline flex items-center gap-2 glow-text">
+        <a href="Lessons.html" class="hover:underline flex items-center gap-2 gradient-glow">
           <i data-lucide="book-open"></i> Lessons by Grandmasters
         </a>
-        <a href="service1.html" class="hover:underline flex items-center gap-2 glow-text">
+        <a href="service1.html" class="hover:underline flex items-center gap-2 gradient-glow">
           <i data-lucide="puzzle"></i> Puzzles
         </a>
-        <a href="service2.html" class="hover:underline flex items-center gap-2 glow-text">
+        <a href="service2.html" class="hover:underline flex items-center gap-2 gradient-glow">
           <i data-lucide="globe"></i> Global Leaderboard
         </a>
       </div>
@@ -131,7 +174,7 @@
     particlesJS("particles-js", {
       particles: {
         number: { value: 80, density: { enable: true, value_area: 800 } },
-        color: { value: "#60a5fa" },
+        color: { value: "#888" },
         shape: { type: "circle" },
         opacity: { value: 0.3 },
         size: { value: 4, random: true },
