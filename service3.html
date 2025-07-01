@@ -5,11 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Explore - Chess Tackler</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/lucide@latest/dist/umd/lucide.css" />
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .float-text {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .glow-text {
+      text-shadow: 0 0 8px rgba(59, 130, 246, 0.6), 0 0 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .glow-bg {
+      background: linear-gradient(135deg, #e0f2fe, #fff);
+      box-shadow: 0 4px 60px rgba(59, 130, 246, 0.2);
+    }
+
+    .glow-btn {
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.6), 0 0 20px rgba(59, 130, 246, 0.4);
+    }
+
+    #particles-js {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      top: 0;
+      left: 0;
+    }
+  </style>
 </head>
-<body class="bg-white text-gray-900">
+<body class="bg-gradient-to-br from-white to-blue-50 text-gray-900 relative overflow-x-hidden">
+
+  <!-- Particle Background -->
+  <div id="particles-js"></div>
 
   <!-- Navbar -->
-  <header class="flex items-center justify-between px-8 py-4 border-b">
+  <header class="flex items-center justify-between px-8 py-4 border-b bg-white bg-opacity-70 backdrop-blur-lg shadow-sm">
     <div class="flex items-center gap-6">
       <img src="CT logo.png" alt="Chess Tackler Logo" class="h-12" />
       <nav class="hidden md:flex gap-4 text-sm font-medium">
@@ -29,55 +66,94 @@
 
   <!-- Hero Section -->
   <section class="grid grid-cols-1 md:grid-cols-2 gap-12 px-8 py-20 max-w-7xl mx-auto items-center">
-    
-    <!-- Left Column: Text and Links -->
+
+    <!-- Left Column -->
     <div>
       <a href="Puzzlemania.html">
-        <span id="highlight-badge" class="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full mb-4 hover:bg-blue-200 transition">
+        <span id="highlight-badge" class="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full mb-4 hover:bg-blue-200 transition glow-text">
           New · Static Puzzles
         </span>
       </a>
 
-      <h1 class="text-4xl font-bold mb-4 leading-tight">Uncover Insights,<br>Dominate the Board.</h1>
+      <h1 class="text-4xl font-bold mb-4 leading-tight float-text glow-text">
+        Uncover Insights,<br>Dominate the Board.
+      </h1>
+
       <p class="text-lg text-gray-700 mb-6">
         Unlock smarter moves and sharpen your strategy with our collection of interactive puzzles, AI-powered analysis, and tactical breakdowns. Whether you're a beginner or a master, Chess Tackler helps you see the board—and the game—in a whole new way.
       </p>
-      
+
       <!-- CTA Button -->
       <div class="mb-6">
-        <a href="#" id="highlight-trigger" class="bg-blue-600 text-white px-5 py-2 rounded-full text-sm hover:bg-blue-700 transition">
+        <a href="#" id="highlight-trigger" class="bg-blue-600 glow-btn text-white px-5 py-2 rounded-full text-sm hover:bg-blue-700 transition">
           What's new with Us
         </a>
       </div>
 
       <!-- Feature Links -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-blue-600 text-sm font-medium">
-        <a href="#" class="hover:underline">♟️ Opening Explorer</a>
-        <a href="Lessons.html" class="hover:underline">📚 Lessons by Grandmasters</a>
-        <a href="service1.html" class="hover:underline">🧩 Puzzles</a>
-        <a href="service2.html" class="hover:underline">🌐 Global Leaderboard</a>
+        <a href="#" class="hover:underline flex items-center gap-2 glow-text">
+          <i data-lucide="chess"></i> Opening Explorer
+        </a>
+        <a href="Lessons.html" class="hover:underline flex items-center gap-2 glow-text">
+          <i data-lucide="book-open"></i> Lessons by Grandmasters
+        </a>
+        <a href="service1.html" class="hover:underline flex items-center gap-2 glow-text">
+          <i data-lucide="puzzle"></i> Puzzles
+        </a>
+        <a href="service2.html" class="hover:underline flex items-center gap-2 glow-text">
+          <i data-lucide="globe"></i> Global Leaderboard
+        </a>
       </div>
     </div>
 
-    <!-- Right Column: Image -->
-    <div class="flex justify-center">
-      <img src="CBoard.png" alt="Chess Board Preview" class="rounded-xl shadow-lg w-full max-w-md" />
+    <!-- Right Column -->
+    <div class="flex justify-center glow-bg rounded-xl p-4">
+      <img src="CBoard.png" alt="Chess Board Preview" class="rounded-xl shadow-lg w-full max-w-md float-text" />
     </div>
 
   </section>
 
-  <!-- Glow Animation Script -->
+  <!-- Highlight Script -->
   <script>
     document.getElementById("highlight-trigger").addEventListener("click", function (e) {
       e.preventDefault();
       const badge = document.getElementById("highlight-badge");
       badge.classList.add("bg-yellow-300", "ring", "ring-yellow-500");
-
       setTimeout(() => {
         badge.classList.remove("bg-yellow-300", "ring", "ring-yellow-500");
       }, 1000);
     });
   </script>
+
+  <!-- Particles JS Config -->
+  <script>
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 80, density: { enable: true, value_area: 800 } },
+        color: { value: "#60a5fa" },
+        shape: { type: "circle" },
+        opacity: { value: 0.3 },
+        size: { value: 4, random: true },
+        move: { enable: true, speed: 1, direction: "none", out_mode: "out" }
+      },
+      interactivity: {
+        events: {
+          onhover: { enable: true, mode: "repulse" },
+          onclick: { enable: true, mode: "push" }
+        },
+        modes: {
+          repulse: { distance: 100 },
+          push: { particles_nb: 4 }
+        }
+      },
+      retina_detect: true
+    });
+  </script>
+
+  <!-- Lucide Icons Activation -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
 
 </body>
 </html>
