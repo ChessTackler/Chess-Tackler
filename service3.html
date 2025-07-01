@@ -9,175 +9,133 @@
   <link rel="stylesheet" href="https://unpkg.com/lucide@latest/dist/umd/lucide.css" />
 
   <style>
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+    body {
+      background-color: white;
+      color: #111827;
     }
 
-    @keyframes pulse-glow {
-      0% { opacity: 0.8; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.05); }
-      100% { opacity: 0.8; transform: scale(1); }
-    }
-
-    .premium-glow {
-      position: relative;
-      z-index: 1;
-    }
-
-    .premium-glow::before {
-      content: "";
+    .conic-bg {
       position: absolute;
-      inset: -4px;
+      top: 0;
+      left: 0;
+      width: 150%;
+      height: 150%;
+      background: conic-gradient(from 0deg at 50% 50%, #0000000f, #00000010, #00000000);
       z-index: -1;
-      border-radius: inherit;
-      background: radial-gradient(
-        circle,
-        rgba(244, 63, 94, 0.35),
-        rgba(59, 130, 246, 0.25),
-        rgba(16, 185, 129, 0.25),
-        rgba(250, 204, 21, 0.25),
-        rgba(236, 72, 153, 0.25)
-      );
-      filter: blur(8px);
-      opacity: 0.8;
-      animation: premium-pulse 6s ease-in-out infinite;
-    }
-
-    @keyframes premium-pulse {
-      0%, 100% {
-        opacity: 0.7;
-        transform: scale(1);
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.04);
-      }
-    }
-
-    .glow-btn {
-      position: relative;
-      z-index: 1;
-      overflow: hidden;
-    }
-
-    .glow-btn::before {
-      content: "";
-      position: absolute;
-      inset: -20%;
-      z-index: -1;
-      background: conic-gradient(from 0deg,
-        #f43f5e, #3b82f6, #10b981, #facc15, #ec4899, #f43f5e
-      );
-      animation: spin 6s linear infinite;
-      filter: blur(10px);
-      opacity: 0.6;
-      border-radius: 9999px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .glow-gold {
-      box-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4);
-      animation: subtle-pulse 3s infinite ease-in-out;
-    }
-
-    @keyframes subtle-pulse {
-      0%, 100% {
-        box-shadow: 0 0 10px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
-      }
-      50% {
-        box-shadow: 0 0 20px rgba(255, 215, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.7);
-      }
+      pointer-events: none;
     }
 
     #particles-js {
       position: fixed;
       width: 100%;
       height: 100%;
-      z-index: -1;
+      z-index: -2;
       top: 0;
       left: 0;
     }
+
+    .nav-link:hover {
+      color: #000;
+    }
+
+    .btn-dark {
+      background-color: #111827;
+      color: white;
+      font-weight: 600;
+    }
+
+    .btn-dark:hover {
+      background-color: #1f2937;
+    }
+
+    .badge-highlight {
+      background-color: #111827;
+      color: white;
+    }
+
+    .badge-highlight:hover {
+      background-color: #374151;
+    }
+
+    .gold-border {
+      border: 2px solid #facc15;
+    }
+
+    .shadow-clean {
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
   </style>
 </head>
-<body class="bg-[#0f172a] text-yellow-100 relative overflow-x-hidden">
+<body class="relative overflow-x-hidden">
+
+  <!-- Conic Gradient Background -->
+  <div class="conic-bg"></div>
 
   <!-- Particle Background -->
   <div id="particles-js"></div>
 
-  <!-- Premium Header -->
-  <header class="flex items-center justify-between px-8 py-4 border-b bg-[#0f172a] shadow-md relative z-10">
+  <!-- Header -->
+  <header class="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white shadow-md relative z-10">
     <div class="flex items-center gap-6">
-      <!-- Glowing Logo -->
-      <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center glow-gold ring-2 ring-yellow-300 shadow-lg">
+      <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center border border-gray-300 shadow-clean">
         <img src="CT logo.png" alt="Chess Tackler Logo" class="h-8 w-8 object-contain" />
       </div>
-      <!-- Nav Links -->
-      <nav class="hidden md:flex gap-4 text-sm font-medium text-yellow-100">
-        <a href="Lessons.html" class="hover:text-yellow-300 transition">Learn</a>
-        <a href="#" class="hover:text-yellow-300 transition">Games</a>
-        <a href="#" class="hover:text-yellow-300 transition">Rules</a>
-        <a href="#" class="hover:text-yellow-300 transition">Books</a>
+      <nav class="hidden md:flex gap-4 text-sm font-medium text-gray-800">
+        <a href="Lessons.html" class="nav-link">Learn</a>
+        <a href="#" class="nav-link">Games</a>
+        <a href="#" class="nav-link">Rules</a>
+        <a href="#" class="nav-link">Books</a>
       </nav>
     </div>
-    <div class="flex items-center gap-4 text-sm text-yellow-100">
-      <a href="../index.html#services" class="hover:text-yellow-300 transition">Services</a>
-      <a href="about" class="hidden md:block hover:text-yellow-300 transition">About us</a>
-      <a href="index.html#contact" class="hidden md:block hover:text-yellow-300 transition">Contact us</a>
-      <a href="index.html" class="bg-yellow-400 text-[#0f172a] px-4 py-2 rounded-full text-sm hover:bg-yellow-300 transition font-semibold shadow-md">Home</a>
+    <div class="flex items-center gap-4 text-sm text-gray-800">
+      <a href="../index.html#services" class="nav-link">Services</a>
+      <a href="about" class="hidden md:block nav-link">About us</a>
+      <a href="index.html#contact" class="hidden md:block nav-link">Contact us</a>
+      <a href="index.html" class="btn-dark px-4 py-2 rounded-full shadow-clean">Home</a>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="grid grid-cols-1 md:grid-cols-2 gap-12 px-8 py-20 max-w-7xl mx-auto items-center">
-
-    <!-- Left Column -->
+  <!-- Hero -->
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-12 px-8 py-20 max-w-7xl mx-auto items-center relative z-10">
     <div>
       <a href="Puzzlemania.html">
-        <span id="highlight-badge" class="inline-block bg-yellow-100 text-yellow-900 text-xs px-2 py-1 rounded-full mb-4 hover:bg-yellow-200 transition premium-glow">
+        <span id="highlight-badge" class="inline-block badge-highlight text-xs px-3 py-1 rounded-full mb-4 transition font-semibold">
           New · Static Puzzles
         </span>
       </a>
 
-      <h1 class="text-4xl font-bold mb-4 leading-tight text-yellow-100">
+      <h1 class="text-4xl font-bold mb-4 leading-tight text-gray-900">
         Uncover Insights,<br>Dominate the Board.
       </h1>
 
-      <p class="text-lg text-yellow-200 mb-6">
+      <p class="text-lg text-gray-700 mb-6">
         Unlock smarter moves and sharpen your strategy with our collection of interactive puzzles, AI-powered analysis, and tactical breakdowns. Whether you're a beginner or a master, Chess Tackler helps you see the board—and the game—in a whole new way.
       </p>
 
-      <!-- CTA Button -->
       <div class="mb-6">
-        <a href="#" id="highlight-trigger" class="glow-btn text-[#0f172a] bg-yellow-400 px-5 py-2 rounded-full text-sm font-semibold hover:bg-yellow-300 transition">
+        <a href="#" id="highlight-trigger" class="btn-dark px-5 py-2 rounded-full shadow-clean">
           What's new with Us
         </a>
       </div>
 
-      <!-- Feature Links -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-yellow-200 text-sm font-medium">
-        <a href="#" class="hover:underline flex items-center gap-2 premium-glow">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-800 text-sm font-medium">
+        <a href="#" class="hover:underline flex items-center gap-2">
           <i data-lucide="chess"></i> Opening Explorer
         </a>
-        <a href="Lessons.html" class="hover:underline flex items-center gap-2 premium-glow">
+        <a href="Lessons.html" class="hover:underline flex items-center gap-2">
           <i data-lucide="book-open"></i> Lessons by Grandmasters
         </a>
-        <a href="service1.html" class="hover:underline flex items-center gap-2 premium-glow">
+        <a href="service1.html" class="hover:underline flex items-center gap-2">
           <i data-lucide="puzzle"></i> Puzzles
         </a>
-        <a href="service2.html" class="hover:underline flex items-center gap-2 premium-glow">
+        <a href="service2.html" class="hover:underline flex items-center gap-2">
           <i data-lucide="globe"></i> Global Leaderboard
         </a>
       </div>
     </div>
 
-    <!-- Right Column -->
     <div class="flex justify-center rounded-xl p-4">
-      <img src="CBoard.png" alt="Chess Board Preview" class="rounded-xl shadow-lg w-full max-w-md float-text" />
+      <img src="CBoard.png" alt="Chess Board Preview" class="rounded-xl shadow-clean w-full max-w-md gold-border" />
     </div>
   </section>
 
@@ -186,9 +144,9 @@
     document.getElementById("highlight-trigger").addEventListener("click", function (e) {
       e.preventDefault();
       const badge = document.getElementById("highlight-badge");
-      badge.classList.add("bg-yellow-300", "ring", "ring-yellow-500");
+      badge.classList.add("ring", "ring-gray-700");
       setTimeout(() => {
-        badge.classList.remove("bg-yellow-300", "ring", "ring-yellow-500");
+        badge.classList.remove("ring", "ring-gray-700");
       }, 1000);
     });
   </script>
@@ -197,12 +155,12 @@
   <script>
     particlesJS("particles-js", {
       particles: {
-        number: { value: 60, density: { enable: true, value_area: 800 } },
-        color: { value: "#facc15" },
+        number: { value: 50, density: { enable: true, value_area: 800 } },
+        color: { value: "#000000" },
         shape: { type: "circle" },
-        opacity: { value: 0.3 },
-        size: { value: 4, random: true },
-        move: { enable: true, speed: 1, direction: "none", out_mode: "out" }
+        opacity: { value: 0.05 },
+        size: { value: 3, random: true },
+        move: { enable: true, speed: 0.5, direction: "none", out_mode: "out" }
       },
       interactivity: {
         events: {
