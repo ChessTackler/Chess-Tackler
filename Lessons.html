@@ -38,7 +38,6 @@
       }
     }
 
-    /* Logo hover glow */
     .logo-glow {
       transition: box-shadow 0.3s ease;
     }
@@ -47,7 +46,6 @@
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
     }
 
-    /* Collapsible transition */
     .collapsible {
       transition: max-height 0.5s ease, opacity 0.4s ease;
       overflow: hidden;
@@ -67,7 +65,6 @@
   <header class="bg-gray-900 text-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <!-- ✅ Logo inside white circle with hover glow -->
         <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md logo-glow">
           <img src="CT logo.png" alt="Logo" class="w-7 h-7 object-contain" />
         </div>
@@ -87,13 +84,21 @@
       <p class="text-center text-gray-500 font-medium mb-8">Credit: <span class="italic">Chessbase</span></p>
 
       <!-- Lessons -->
-      <div class="space-y-10">
+      <div class="space-y-10 mb-12">
         <div id="lessonContainer"></div>
       </div>
+
+      <!-- Go Back Button -->
+      <div class="flex justify-center">
+        <button onclick="goBack()" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold text-lg px-8 py-3 rounded-full shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl">
+          ← Go Back
+        </button>
+      </div>
+
     </div>
   </main>
 
-  <!-- Script -->
+  <!-- Scripts -->
   <script>
     const lessons = [
       ["Openings_1_White_(by Huschenbeth)", "01. Match1.mp4", "preview1.jpg"],
@@ -136,6 +141,10 @@
     function toggleMatch(id) {
       const video = document.getElementById("videoContainer" + id);
       video.classList.toggle("open");
+    }
+
+    function goBack() {
+      window.location.href = "service3.html";
     }
   </script>
 
