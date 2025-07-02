@@ -241,3 +241,40 @@
 
     function spawnLoop() {
       if (!gameRunning) return;
+      createFallingObject();
+      const timeout = setTimeout(spawnLoop, Math.random() * 800 + 400);
+      spawnTimeouts.push(timeout);
+    }
+
+    function endGame() {
+      if (!gameRunning) return;
+      gameRunning = false;
+
+      // Stop future spawns
+      spawnTimeouts.forEach(clearTimeout);
+      spawnTimeouts = [];
+
+      // Remove existing balloons
+      document.querySelectorAll('.fallingObject').forEach(el => el.remove());
+
+      finalScoreText.textContent = "Final Score: " + score;
+      gameOverScreen.style.display = "block";
+
+      // Don't show start button after game over
+      // startBtn.style.display = "block"; // removed this line
+    }
+
+    function startGame() {
+      score = 0;
+      updateScore(score);
+      gameRunning = true;
+      gameOverScreen.style.display = "none";
+      startBtn.style.display = "none";
+      spawnLoop();
+    }
+
+    restartBtn.addEventListener("click", startGame);
+    startBtn.addEventListener("click", startGame);
+  </script>
+</body>
+</html>
