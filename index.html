@@ -5,17 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chess Tackler</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @keyframes marquee {
-      0%   { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
-    .animate-marquee {
-      display: inline-block;
-      white-space: nowrap;
-      animation: marquee 15s linear infinite;
-    }
-  </style>
 </head>
 <body class="bg-white text-gray-800">
 
@@ -37,12 +26,22 @@
     </div>
   </header>
 
-  <!-- Moving Notice Banner -->
-  <div class="relative overflow-hidden bg-gradient-to-r from-yellow-400/30 via-orange-300/30 to-red-400/30 backdrop-blur-md text-black shadow-inner border-y border-yellow-500">
-    <div class="whitespace-nowrap animate-marquee font-medium py-2 px-4 text-center text-sm md:text-base">
-      <span class="mx-4">🚧 This website is under construction. Therefore, some functions may not work properly. 🚧</span>
+  <!-- Construction Notice -->
+  <div class="bg-gradient-to-r from-yellow-400 to-red-500 py-2 overflow-hidden">
+    <div class="animate-marquee whitespace-nowrap text-white font-semibold text-center text-sm tracking-wide">
+      🚧 This website is under construction, therefore, some functions may not work properly 🚧
     </div>
   </div>
+  <style>
+    @keyframes marquee {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    .animate-marquee {
+      display: inline-block;
+      animation: marquee 15s linear infinite;
+    }
+  </style>
 
   <!-- Hero Section -->
   <section id="home" class="relative h-screen text-white">
@@ -61,7 +60,8 @@
   <section id="services" class="py-20 bg-gray-50">
     <div class="container mx-auto px-6 text-center">
       <h3 class="text-3xl font-bold mb-12">Our Services</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
         <a href="service1.html" class="block">
           <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition hover:cursor-pointer">
             <img src="puzzle logo.png" alt="Chess Puzzles" class="h-16 mx-auto mb-4" />
@@ -69,6 +69,7 @@
             <p>Tactical puzzles and Master's game.</p>
           </div>
         </a>
+
         <a href="service2.html" class="block">
           <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition hover:cursor-pointer">
             <img src="Player.png" alt="Players list" class="h-16 mx-auto mb-4" />
@@ -76,6 +77,7 @@
             <p>Click to know Top Players of the world.</p>
           </div>
         </a>
+
         <a href="service3.html" class="block">
           <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition hover:cursor-pointer">
             <img src="EXP.png" alt="Explore" class="h-16 mx-auto mb-4" />
@@ -83,12 +85,21 @@
             <p>Explore Chess contents and features</p>
           </div>
         </a>
+
+        <a href="funzone.html" class="block">
+          <div class="bg-white p-6 rounded-lg shadow hover:shadow-lg transition hover:cursor-pointer">
+            <img src="funzone-icon.png" alt="Fun Zone" class="h-16 mx-auto mb-4" />
+            <h4 class="text-xl font-semibold mb-2">Fun Zone</h4>
+            <p>Play mini games, quizzes, and explore light-hearted chess fun!</p>
+          </div>
+        </a>
+
       </div>
     </div>
   </section>
 
   <!-- Forum Section -->
-  <section id="forum" class="py-20 bg-cover bg-center text-white" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Chess_Board.svg/1200px-Chess_Board.svg.png');">
+  <section id="forum" class="py-20 bg-cover bg-center text-white" style="background-image: url('chessboard-pattern.jpg');">
     <div class="container mx-auto px-6 max-w-3xl bg-black/70 backdrop-blur-sm p-8 rounded-lg">
       <h3 class="text-3xl font-bold mb-6 text-center text-blue-400">Community Forum</h3>
 
@@ -154,7 +165,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       const posts = JSON.parse(localStorage.getItem('forumPosts')) || [];
-      posts.reverse().forEach(post => addForumMessage(post.text, post.time, false));
+      posts.reverse().forEach(post => addForumMessage(post.text, post.time));
     });
 
     forumInput.addEventListener('input', () => {
@@ -178,7 +189,7 @@
       }
 
       const time = new Date().toLocaleString();
-      addForumMessage(text, time, true);
+      addForumMessage(text, time);
 
       const posts = JSON.parse(localStorage.getItem('forumPosts')) || [];
       posts.push({ text, time });
@@ -188,7 +199,7 @@
       charCountDisplay.textContent = `0 / ${MAX_CHARS} characters`;
     });
 
-    function addForumMessage(text, time, save) {
+    function addForumMessage(text, time) {
       const messageEl = document.createElement('div');
       messageEl.className = 'bg-gray-700 border border-gray-600 p-3 rounded shadow-sm';
 
