@@ -101,7 +101,7 @@
     <!-- Sound Effects -->
     <audio id="popSound" src="Pop.mp3"></audio>
     <audio id="bombSound" src="Bomb.mp3"></audio>
-    <audio id="gameoverSound" src="gameover.mp3"></audio>
+    <audio id="gameOverSound" src="gameover.mp3"></audio>
   </div>
 
   <script>
@@ -122,6 +122,15 @@
     let score = 0;
     let gameRunning = true;
     let spawnTimeouts = [];
+
+    // Helper to play overlapping sounds
+    function playSound(id) {
+      const original = document.getElementById(id);
+      if (original) {
+        const clone = original.cloneNode();
+        clone.play();
+      }
+    }
 
     function createFallingObject() {
       if (!gameRunning) return;
@@ -145,9 +154,24 @@
         topPosition += fallSpeed;
         img.style.top = topPosition + "px";
 
-        if (topPosition + 60 >= window.innerHeight - 20) {
+        const gameHeight = window.innerHeight;
+        const ninetyPercent = gameHeight * 0.9;
+
+        // End game if balloon hits 90% of screen
+        if (topPosition + 60 >= ninetyPercent) {
           if (img.src.includes("Ballons")) {
-            document.getElementById("gameOverSound").play();
+            playSound("gameOverSound");
+            endGame();
+          }
+          clearInterval(fall);
+          img.remove();
+          return;
+        }
+
+        // (Optional) keep the original bottom detection
+        if (topPosition + 60 >= gameHeight - 20) {
+          if (img.src.includes("Ballons")) {
+            playSound("gameOverSound");
             endGame();
           }
           clearInterval(fall);
@@ -159,12 +183,12 @@
         if (!gameRunning) return;
 
         if (img.src.includes("Bomb1.png")) {
-          document.getElementById("bombSound").play();
+          playSound("bombSound");
           endGame();
         } else if (img.src.includes("Ballons")) {
           score += 50;
           scoreBoard.textContent = "Score: " + score;
-          document.getElementById("popSound").play();
+          playSound("popSound");
         }
 
         clearInterval(fall);
