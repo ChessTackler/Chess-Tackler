@@ -1,27 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Balloon Shooter Game</title>
   <style>
     body {
       margin: 0;
       overflow: hidden;
       font-family: Arial, sans-serif;
-      background: #87CEEB;
     }
+
     #gameArea {
       position: relative;
       width: 100vw;
       height: 100vh;
       overflow: hidden;
+      background: url('BG_Fun.png') center center / cover no-repeat;
     }
+
     .fallingObject {
       position: absolute;
       width: 60px;
       height: auto;
       cursor: crosshair;
     }
+
     #laser {
       position: absolute;
       bottom: 0;
@@ -30,6 +34,7 @@
       background: url('Laser1.png') no-repeat center;
       background-size: cover;
     }
+
     #scoreBoard {
       position: absolute;
       top: 10px;
@@ -37,7 +42,9 @@
       font-size: 24px;
       color: #fff;
       text-shadow: 1px 1px 2px #000;
+      z-index: 1000;
     }
+
     #gameOver {
       display: none;
       position: absolute;
@@ -46,9 +53,11 @@
       transform: translate(-50%, -50%);
       font-size: 48px;
       color: red;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 20px;
-      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 20px 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #000;
+      z-index: 1000;
     }
   </style>
 </head>
@@ -57,13 +66,26 @@
     <div id="scoreBoard">Score: 0</div>
     <div id="laser"></div>
     <div id="gameOver">Game Over</div>
+
+    <!-- Sound Effects -->
+    <audio id="popSound" src="pop.mp3"></audio>
+    <audio id="bombSound" src="bomb.mp3"></audio>
+    <audio id="gameOverSound" src="gameover.mp3"></audio>
   </div>
 
   <script>
     const gameArea = document.getElementById("gameArea");
     const scoreBoard = document.getElementById("scoreBoard");
     const gameOverText = document.getElementById("gameOver");
-    const objectImages = ['Ballons1.png', 'Ballons2.png', 'Ballons3.png', 'Ballons4.png', 'Bomb1.png'];
+
+    const objectImages = [
+      'Ballons1.png',
+      'Ballons2.png',
+      'Ballons3.png',
+      'Ballons4.png',
+      'Bomb1.png'
+    ];
+
     let score = 0;
     let gameRunning = true;
 
@@ -77,7 +99,7 @@
       gameArea.appendChild(img);
 
       let topPosition = -60;
-      const fallSpeed = Math.random() * 2 + 1;
+      const fallSpeed = Math.random() * 2 + 1.5;
 
       const fall = setInterval(() => {
         if (!gameRunning) {
@@ -89,46 +111,48 @@
         topPosition += fallSpeed;
         img.style.top = topPosition + "px";
 
-        // Check for bottom (laser) hit
         if (topPosition + 60 >= window.innerHeight - 20) {
           if (img.src.includes("Ballons")) {
             endGame();
+            document.getElementById("gameOverSound").play();
           }
           clearInterval(fall);
           img.remove();
         }
       }, 16);
 
-      // Click to shoot
       img.onclick = function () {
         if (!gameRunning) return;
 
         if (img.src.includes("Bomb1.png")) {
+          document.getElementById("bombSound").play();
           endGame();
         } else if (img.src.includes("Ballons")) {
           score += 50;
           scoreBoard.textContent = "Score: " + score;
+          document.getElementById("popSound").play();
         }
 
         clearInterval(fall);
         img.remove();
       };
 
-      // Tap support for mobile
       img.ontouchstart = img.onclick;
     }
 
     function spawnLoop() {
       if (!gameRunning) return;
       createFallingObject();
-      setTimeout(spawnLoop, Math.random() * 800 + 400); // Random interval
+      setTimeout(spawnLoop, Math.random() * 800 + 400);
     }
 
     function endGame() {
+      if (!gameRunning) return;
       gameRunning = false;
       gameOverText.style.display = "block";
     }
 
+    // Start game
     spawnLoop();
   </script>
 </body>
