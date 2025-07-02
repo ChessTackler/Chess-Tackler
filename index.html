@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Chess Tackler</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes marquee {
+      0%   { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    .animate-marquee {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marquee 15s linear infinite;
+    }
+  </style>
 </head>
 <body class="bg-white text-gray-800">
 
@@ -25,6 +36,13 @@
       </nav>
     </div>
   </header>
+
+  <!-- Moving Notice Banner -->
+  <div class="relative overflow-hidden bg-gradient-to-r from-yellow-400/30 via-orange-300/30 to-red-400/30 backdrop-blur-md text-black shadow-inner border-y border-yellow-500">
+    <div class="whitespace-nowrap animate-marquee font-medium py-2 px-4 text-center text-sm md:text-base">
+      <span class="mx-4">🚧 This website is under construction, therefore, some functions may not work properly. 🚧</span>
+    </div>
+  </div>
 
   <!-- Hero Section -->
   <section id="home" class="relative h-screen text-white">
@@ -70,9 +88,8 @@
   </section>
 
   <!-- Forum Section -->
-  <section id="forum" class="py-20 bg-cover bg-center text-white relative" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/2f/Chess_Board.svg');">
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm z-0"></div>
-    <div class="relative z-10 container mx-auto px-6 max-w-3xl bg-black/70 backdrop-blur-sm p-8 rounded-lg">
+  <section id="forum" class="py-20 bg-cover bg-center text-white" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Chess_Board.svg/1200px-Chess_Board.svg.png');">
+    <div class="container mx-auto px-6 max-w-3xl bg-black/70 backdrop-blur-sm p-8 rounded-lg">
       <h3 class="text-3xl font-bold mb-6 text-center text-blue-400">Community Forum</h3>
 
       <form id="forumForm" class="mb-6">
