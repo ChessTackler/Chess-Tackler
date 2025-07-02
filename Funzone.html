@@ -16,7 +16,7 @@
       width: 100vw;
       height: 100vh;
       overflow: hidden;
-      background: url('BG Fun.png') center center / cover no-repeat;
+      background: url('BG_Fun.png') center center / cover no-repeat;
     }
 
     .fallingObject {
@@ -45,19 +45,44 @@
       z-index: 1000;
     }
 
-    #gameOver {
+    #gameOverScreen {
       display: none;
       position: absolute;
-      top: 40%;
+      top: 35%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 48px;
-      color: red;
+      text-align: center;
       background: rgba(255, 255, 255, 0.9);
-      padding: 20px 40px;
+      padding: 30px 50px;
       border-radius: 12px;
       box-shadow: 0 0 15px #000;
       z-index: 1000;
+    }
+
+    #finalScore {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    #gameOverText {
+      font-size: 48px;
+      color: red;
+      margin-bottom: 20px;
+    }
+
+    #restartBtn {
+      font-size: 18px;
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #restartBtn:hover {
+      background-color: #218838;
     }
   </style>
 </head>
@@ -65,7 +90,13 @@
   <div id="gameArea">
     <div id="scoreBoard">Score: 0</div>
     <div id="laser"></div>
-    <div id="gameOver">Game Over</div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen">
+      <div id="finalScore">Final Score: 0</div>
+      <div id="gameOverText">Game Over</div>
+      <button id="restartBtn">Try Again</button>
+    </div>
 
     <!-- Sound Effects -->
     <audio id="popSound" src="pop.mp3"></audio>
@@ -76,7 +107,9 @@
   <script>
     const gameArea = document.getElementById("gameArea");
     const scoreBoard = document.getElementById("scoreBoard");
-    const gameOverText = document.getElementById("gameOver");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const finalScoreText = document.getElementById("finalScore");
+    const restartBtn = document.getElementById("restartBtn");
 
     const objectImages = [
       'Ballons1.png',
@@ -88,6 +121,7 @@
 
     let score = 0;
     let gameRunning = true;
+    let spawnTimeouts = [];
 
     function createFallingObject() {
       if (!gameRunning) return;
@@ -113,8 +147,8 @@
 
         if (topPosition + 60 >= window.innerHeight - 20) {
           if (img.src.includes("Ballons")) {
-            endGame();
             document.getElementById("gameOverSound").play();
+            endGame();
           }
           clearInterval(fall);
           img.remove();
@@ -143,14 +177,34 @@
     function spawnLoop() {
       if (!gameRunning) return;
       createFallingObject();
-      setTimeout(spawnLoop, Math.random() * 800 + 400);
+      const timeout = setTimeout(spawnLoop, Math.random() * 800 + 400);
+      spawnTimeouts.push(timeout);
     }
 
     function endGame() {
       if (!gameRunning) return;
       gameRunning = false;
-      gameOverText.style.display = "block";
+
+      // Stop future spawns
+      spawnTimeouts.forEach(clearTimeout);
+      spawnTimeouts = [];
+
+      // Remove existing balloons
+      document.querySelectorAll('.fallingObject').forEach(el => el.remove());
+
+      finalScoreText.textContent = "Final Score: " + score;
+      gameOverScreen.style.display = "block";
     }
+
+    function restartGame() {
+      score = 0;
+      gameRunning = true;
+      scoreBoard.textContent = "Score: 0";
+      gameOverScreen.style.display = "none";
+      spawnLoop();
+    }
+
+    restartBtn.addEventListener("click", restartGame);
 
     // Start game
     spawnLoop();
