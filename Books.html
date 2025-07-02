@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Books PDF Viewer</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f7f9fa;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    header {
+      background-color: #2c3e50;
+      color: white;
+      padding: 16px 24px;
+      font-size: 1.25rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 16px;
+    }
+
+    .header-content .logo {
+      height: 40px;
+      width: auto;
+      border-radius: 6px;
+      object-fit: contain;
+      box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1);
+    }
+
+    .header-content .title {
+      font-weight: 600;
+      font-size: 1.4rem;
+      letter-spacing: 0.5px;
+    }
+
+    #pdf-viewer {
+      max-width: 860px;
+      margin: 24px auto;
+      padding: 16px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #pdf-viewer:fullscreen {
+      overflow-y: auto;
+      max-height: 100vh;
+      scroll-behavior: smooth;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      margin-bottom: 16px;
+      display: block;
+      border-radius: 4px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    }
+
+    #page-count {
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      color: #333;
+    }
+
+    #navigation {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    #navigation button {
+      background-color: #2c3e50;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      font-size: 1rem;
+      margin: 0 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    #navigation button:hover {
+      background-color: #1a252f;
+    }
+
+    #page-search {
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    #page-search input {
+      padding: 8px;
+      width: 80px;
+      font-size: 1rem;
+      margin-right: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #page-search button {
+      padding: 8px 14px;
+      font-size: 1rem;
+      border: none;
+      background-color: #2c3e50;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #page-search button:hover {
+      background-color: #1a252f;
+    }
+
+    #error-message {
+      color: red;
+      font-size: 0.9rem;
+      margin-top: 8px;
+      display: none;
+    }
+
+    #fullscreen-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    #fullscreen-btn:hover {
+      color: #000;
+    }
+
+    body::after {
+      content: "Read Only – No Download";
+      position: fixed;
+      bottom: 10px;
+      right: 12px;
+      color: rgba(0,0,0,0.2);
+      font-size: 12px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    @media (max-width: 600px) {
+      #pdf-viewer {
+        padding: 12px;
+      }
+
+      #navigation button,
+      #page-search button {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+      }
+
+      #page-count {
+        font-size: 0.9rem;
+      }
+
+      #fullscreen-btn {
+        font-size: 18px;
+      }
+
+      .header-content .logo {
+        height: 32px;
+      }
+
+      .header-content .title {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('contextmenu', e => e.preventDefault());
+      document.onkeydown = function(e) {
+        if (e.ctrlKey && ['s', 'p', 'u'].includes(e.key.toLowerCase())) {
+          e.preventDefault();
+        }
+      };
+    });
+  </script>
+</head>
+
+<body>
+
+  <header>
+    <div class="header-content">
+      <img src="CT logo.png" alt="CT Logo" class="logo">
+      <span class="title">Books PDF Viewer</span>
+    </div>
+  </header>
+
+  <div id="pdf-viewer">
+    <button id="fullscreen-btn" title="Full Screen">🖵</button>
+    <canvas id="pdf-canvas"></canvas>
+    <p id="page-count">Page 1 of 1</p>
+
+    <div id="navigation">
+      <button id="prev-page">Previous Page</button>
+      <button id="next-page">Next Page</button>
+    </div>
+
+    <div id="page-search">
+      <input type="number" id="goto-page" placeholder="Page #" min="1" />
+      <button id="go-btn">Go</button>
+      <div id="error-message">No page found</div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+
+  <script>
+    const url = 'Attacking%20with%20g2-g4.pdf';
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+    const pageCountElem = document.getElementById('page-count');
+    const prevBtn = document.getElementById('prev-page');
+    const nextBtn = document.getElementById('next-page');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const viewerContainer = document.getElementById('pdf-viewer');
+    const gotoInput = document.getElementById('goto-page');
+    const goBtn = document.getElementById('go-btn');
+    const errorMsg = document.getElementById('error-message');
+
+    let pdfDoc = null;
+    let currentPage = 1;
+    let totalPages = 0;
+
+    function getResponsiveScale() {
+      const width = window.innerWidth;
+      if (width < 480) return 0.85;
+      if (width < 768) return 1.0;
+      return 1.2;
+    }
+
+    function renderPage(num) {
+      pdfDoc.getPage(num).then(page => {
+        const scale = getResponsiveScale();
+        const viewport = page.getViewport({ scale });
+
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderContext = {
+          canvasContext: ctx,
+          viewport: viewport
+        };
+
+        page.render(renderContext).promise.then(() => {
+          pageCountElem.textContent = `Page ${currentPage} of ${totalPages}`;
+          prevBtn.disabled = currentPage === 1;
+          nextBtn.disabled = currentPage === totalPages;
+        });
+      });
+    }
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+    pdfjsLib.getDocument(url).promise.then(pdf => {
+      pdfDoc = pdf;
+      totalPages = pdf.numPages;
+      renderPage(currentPage);
+    }).catch(err => {
+      pageCountElem.textContent = `Failed to load PDF: ${err.message}`;
+    });
+
+    prevBtn.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPage(currentPage);
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderPage(currentPage);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (pdfDoc) renderPage(currentPage);
+    });
+
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        viewerContainer.requestFullscreen().catch(err => {
+          alert(`Error enabling fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    goBtn.addEventListener('click', () => {
+      const target = parseInt(gotoInput.value);
+      if (!isNaN(target) && target >= 1 && target <= totalPages) {
+        errorMsg.style.display = 'none';
+        currentPage = target;
+        renderPage(currentPage);
+      } else {
+        errorMsg.style.display = 'block';
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      const isInFullscreen = document.fullscreenElement === viewerContainer;
+      viewerContainer.style.overflowY = isInFullscreen ? 'auto' : 'hidden';
+      if (!isInFullscreen) window.scrollTo(0, 0);
+    });
+  </script>
+</body>
+</html>
