@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fun Zone - Chess Tackler</title>
+  <title>Fun Zone – Chess Tackler</title>
   <style>
     * {
       box-sizing: border-box;
@@ -17,7 +17,6 @@
       overflow-x: hidden;
     }
 
-    /* Header */
     header {
       display: flex;
       align-items: center;
@@ -36,7 +35,6 @@
       margin: 0;
     }
 
-    /* Menu */
     .menu {
       display: flex;
       justify-content: center;
@@ -63,7 +61,6 @@
       transform: scale(1.05);
     }
 
-    /* Content */
     .content {
       background-color: #ffffff;
       color: #333;
@@ -98,13 +95,11 @@
       border-radius: 50%;
     }
 
-    /* Animations */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(15px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Mobile Responsiveness */
     @media (max-width: 600px) {
       header h1 {
         font-size: 1.2rem;
@@ -130,33 +125,48 @@
     <h1>Fun Zone – Chess Tackler</h1>
   </header>
 
-  <!-- Navigation -->
+  <!-- Navigation Buttons -->
   <div class="menu">
     <button onclick="playSound(); showPage('quiz')">🧠 Quizzes</button>
-    <button onclick="playSound(); showPage('games')">🎮 Games</button>
+    <button onclick="playSound(); window.location.href='Funzone.html'">🎮 Games</button>
     <button onclick="playSound(); showPage('champions')">🏆 Know Your Champions</button>
   </div>
 
-  <!-- Content Area -->
+  <!-- Dynamic Content -->
   <div id="content" class="content">
     <p>Welcome to the Chess Tackler Fun Zone! Choose an option above.</p>
   </div>
 
-  <!-- Sound Effects -->
-  <audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-29.mp3"></audio>
-  <audio id="correctSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
-  <audio id="wrongSound" src="https://www.soundjay.com/button/beep-10.wav"></audio>
+  <!-- Audio -->
+  <audio id="clickSound" src="click.mp3"></audio>
+  <audio id="correctSound" src="correct.mp3"></audio>
+  <audio id="wrongSound" src="wrong.mp3"></audio>
 
+  <!-- JavaScript -->
   <script>
+    const clickSound = document.getElementById('clickSound');
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
+
     function playSound() {
-      document.getElementById('clickSound').play();
+      clickSound.currentTime = 0;
+      clickSound.play();
+    }
+
+    function playCorrect() {
+      correctSound.currentTime = 0;
+      correctSound.play();
+      alert("Correct! 🎉");
+    }
+
+    function playWrong() {
+      wrongSound.currentTime = 0;
+      wrongSound.play();
+      alert("Oops! Try again.");
     }
 
     function showPage(page) {
       const content = document.getElementById('content');
-      content.classList.remove('fadeIn'); // reset animation
-      void content.offsetWidth; // trigger reflow
-      content.classList.add('fadeIn');
 
       if (page === 'quiz') {
         content.innerHTML = `
@@ -166,37 +176,16 @@
           <button onclick="playWrong()">Beijing</button>
           <button onclick="playWrong()">Seoul</button>
         `;
-      } else if (page === 'games') {
-        content.innerHTML = `
-          <h2>🎮 Clicker Game</h2>
-          <p>Clicks: <span id="counter">0</span></p>
-          <button onclick="incrementCounter()">Click Me!</button>
-        `;
       } else if (page === 'champions') {
         content.innerHTML = `
           <h2>🏆 Know Your Champions</h2>
           <p>Click to learn about a champion:</p>
-          <button onclick="showChampion('Messi')">Lionel Messi</button>
-          <button onclick="showChampion('Marie')">Marie Curie</button>
-          <button onclick="showChampion('Einstein')">Albert Einstein</button>
+          <button onclick="playSound(); showChampion('Messi')">Lionel Messi</button>
+          <button onclick="playSound(); showChampion('Marie')">Marie Curie</button>
+          <button onclick="playSound(); showChampion('Einstein')">Albert Einstein</button>
           <div id="champion-info" class="champion-card"></div>
         `;
       }
-    }
-
-    function playCorrect() {
-      document.getElementById('correctSound').play();
-      alert("Correct! 🎉");
-    }
-
-    function playWrong() {
-      document.getElementById('wrongSound').play();
-      alert("Oops! Try again.");
-    }
-
-    function incrementCounter() {
-      const span = document.getElementById('counter');
-      span.textContent = parseInt(span.textContent) + 1;
     }
 
     function showChampion(name) {
@@ -226,6 +215,5 @@
       infoBox.innerHTML = content;
     }
   </script>
-
 </body>
 </html>
