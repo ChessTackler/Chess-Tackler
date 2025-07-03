@@ -70,6 +70,7 @@
       cursor: pointer;
       background-color: #ffd166;
       font-weight: bold;
+      transition: 0.3s ease;
     }
     .champion-card {
       background: #f9f9f9;
@@ -89,6 +90,25 @@
       header h1 { font-size: 1.2rem; }
       .menu button { flex: 1 1 100%; margin: 5px; }
       .content { width: 90%; padding: 20px; }
+    }
+
+    button.correct {
+      background-color: #28a745 !important;
+      color: white !important;
+      box-shadow: 0 0 10px #28a745;
+      transform: scale(1.05);
+    }
+
+    button.wrong {
+      background-color: #dc3545 !important;
+      color: white !important;
+      box-shadow: 0 0 10px #dc3545;
+      transform: scale(1.05);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
     }
   </style>
 </head>
@@ -183,17 +203,28 @@
       clickSound.play();
     }
 
-    function playCorrect() {
-      correctSound.currentTime = 0;
-      correctSound.play();
-      alert("Correct! 🎉");
-      showRandomQuestion();
-    }
+    function handleAnswer(selectedBtn, correctAnswer) {
+      const buttons = document.querySelectorAll("#content button");
+      buttons.forEach(btn => btn.disabled = true);
 
-    function playWrong() {
-      wrongSound.currentTime = 0;
-      wrongSound.play();
-      alert("Oops! Try again.");
+      const selectedText = selectedBtn.textContent.trim();
+      if (selectedText === correctAnswer) {
+        correctSound.currentTime = 0;
+        correctSound.play();
+        selectedBtn.classList.add('correct');
+      } else {
+        wrongSound.currentTime = 0;
+        wrongSound.play();
+        selectedBtn.classList.add('wrong');
+        // Highlight the correct one
+        buttons.forEach(btn => {
+          if (btn.textContent.trim() === correctAnswer) {
+            btn.classList.add('correct');
+          }
+        });
+      }
+
+      setTimeout(() => showRandomQuestion(), 1500);
     }
 
     function showPage(page) {
@@ -254,7 +285,7 @@
       const question = quizData[index];
 
       let buttonsHTML = question.options.map(opt =>
-        `<button onclick="${opt === question.answer ? 'playCorrect()' : 'playWrong()'}">${opt}</button>`
+        `<button onclick="handleAnswer(this, '${question.answer}')">${opt}</button>`
       ).join('');
 
       content.innerHTML = `
