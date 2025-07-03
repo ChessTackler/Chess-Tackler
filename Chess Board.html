@@ -1,6 +1,5 @@
-
-
-<!DOCTYPE html>  <html lang="en">  
+<!DOCTYPE html>  
+<html lang="en">  
 <head>  
   <meta charset="UTF-8" />  
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>  
@@ -14,204 +13,213 @@
       flex-direction: column;  
       align-items: center;  
       min-height: 100vh;  
-    }  .main-header {  
-  position: fixed;  
-  top: 0;  
-  left: 0;  
-  right: 0;  
-  display: flex;  
-  align-items: center;  
-  justify-content: space-between;  
-  background: #fff;  
-  border: 2px solid #ccc;  
-  padding: 12px 24px;  
-  border-radius: 8px;  
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);  
-  margin: 0 auto;  
-  width: calc(100% - 80px);  
-  box-sizing: border-box;  
-  z-index: 1000;  
-}  
-
-.logo {  
-  width: 48px;  
-  height: 48px;  
-  object-fit: contain;  
-  border-radius: 4px;  
-}  
-
-h1, h2 {  
-  font-size: 24px;  
-  margin: 0;  
-}  
-
-.left-column {  
-  display: flex;  
-  flex-direction: column;  
-  align-items: center;  
-  margin-top: 100px;  
-  width: 100%;  
-  max-width: 700px;  
-}  
-
-.chess-board {  
-  display: grid;  
-  grid-template-columns: repeat(8, 60px);  
-  grid-template-rows: repeat(8, 60px);  
-  border: 2px solid #333;  
-}  
-
-.square {  
-  display: flex;  
-  justify-content: center;  
-  align-items: center;  
-  font-size: 36px;  
-  user-select: none;  
-  width: 60px;  
-  height: 60px;  
-  position: relative;  
-}  
-
-.white { background-color: #f0d9b5; }  
-.black { background-color: #b58863; }  
-
-.square.drag-over {  
-  outline: 3px dashed #444;  
-}  
-
-.buttons {  
-  margin-top: 12px;  
-}  
-
-button {  
-  padding: 6px 16px;  
-  margin: 0 6px;  
-  font-size: 16px;  
-  cursor: pointer;  
-}  
-
-.move-log {  
-  background: #fff;  
-  border: 1px solid #ccc;  
-  padding: 6px;  
-  height: 30px;  
-  width: 120px;  
-  overflow-y: auto;  
-  font-size: 14px;  
-  line-height: 1.4;  
-  border-radius: 6px;  
-  white-space: nowrap;  
-}  
-
-.move-log p {  
-  margin: 0;  
-}  
-
-.legal-dot::after {  
-  content: '';  
-  position: absolute;  
-  width: 14px;  
-  height: 14px;  
-  background: rgba(0, 0, 0, 0.3);  
-  border-radius: 50%;  
-}  
-
-.prev-move::after {  
-  content: '';  
-  position: absolute;  
-  top: 0;  
-  left: 0;  
-  width: 100%;  
-  height: 100%;  
-  background-color: yellow;  
-  opacity: 0.25;  
-  pointer-events: none;  
-}  
-
-.comment-section {  
-  background: #fff;  
-  border: 1px solid #ccc;  
-  padding: 12px;  
-  border-radius: 8px;  
-  max-height: 300px;  
-  overflow-y: auto;  
-  width: 100%;  
-  box-sizing: border-box;  
-  margin-top: 20px;  
-}  
-
-.comment-section h2 {  
-  margin-top: 0;  
-  font-size: 20px;  
-}  
-
-#commentsContainer {  
-  margin-bottom: 12px;  
-}  
-
-#commentsContainer p {  
-  background: #f5f5f5;  
-  padding: 6px;  
-  border-radius: 4px;  
-  margin-bottom: 4px;  
-}  
-
-#commentInput {  
-  width: 100%;  
-  height: 60px;  
-  padding: 8px;  
-  font-size: 16px;  
-  box-sizing: border-box;  
-  margin-bottom: 8px;  
-  border: 1px solid #ccc;  
-  border-radius: 4px;  
-  resize: vertical;  
-}  
-
-.comment-section button {  
-  width: 100%;  
-  background-color: #007bff;  
-  color: white;  
-  border: none;  
-  padding: 8px;  
-  font-size: 16px;  
-  border-radius: 4px;  
-}  
-
-.back-button {  
-  text-decoration: none;  
-  background: linear-gradient(45deg, #ff416c, #ff4b2b);  
-  color: white;  
-  padding: 10px 20px;  
-  border-radius: 6px;  
-  font-size: 16px;  
-  font-weight: bold;  
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);  
-  transition: transform 0.2s, box-shadow 0.2s;  
-}  
-
-.back-button:hover {  
-  transform: translateY(-2px);  
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);  
-}
-
+    }  
+  
+    .main-header {  
+      position: fixed;  
+      top: 0;  
+      left: 0;  
+      right: 0;  
+      display: flex;  
+      align-items: center;  
+      justify-content: space-between;  
+      background: #fff;  
+      border: 2px solid #ccc;  
+      padding: 12px 24px;  
+      border-radius: 8px;  
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);  
+      margin: 0 auto;  
+      width: calc(100% - 80px);  
+      box-sizing: border-box;  
+      z-index: 1000;  
+    }  
+  
+    .logo {  
+      width: 48px;  
+      height: 48px;  
+      object-fit: contain;  
+      border-radius: 4px;  
+    }  
+  
+    h1, h2 {  
+      font-size: 24px;  
+      margin: 0;  
+    }  
+  
+    .left-column {  
+      display: flex;  
+      flex-direction: column;  
+      align-items: center;  
+      margin-top: 100px;  
+      width: 100%;  
+      max-width: 700px;  
+    }  
+  
+    .chess-board {  
+      display: grid;  
+      grid-template-columns: repeat(8, 60px);  
+      grid-template-rows: repeat(8, 60px);  
+      border: 2px solid #333;  
+    }  
+  
+    .square {  
+      display: flex;  
+      justify-content: center;  
+      align-items: center;  
+      font-size: 36px;  
+      user-select: none;  
+      width: 60px;  
+      height: 60px;  
+      position: relative;  
+    }  
+  
+    .white { background-color: #f0d9b5; }  
+    .black { background-color: #b58863; }  
+  
+    .square.drag-over {  
+      outline: 3px dashed #444;  
+    }  
+  
+    .buttons {  
+      margin-top: 12px;  
+    }  
+  
+    button {  
+      padding: 6px 16px;  
+      margin: 0 6px;  
+      font-size: 16px;  
+      cursor: pointer;  
+    }  
+  
+    .move-log {  
+      background: #fff;  
+      border: 1px solid #ccc;  
+      padding: 6px;  
+      height: 30px;  
+      width: 120px;  
+      overflow-y: auto;  
+      font-size: 14px;  
+      line-height: 1.4;  
+      border-radius: 6px;  
+      white-space: nowrap;  
+    }  
+  
+    .move-log p {  
+      margin: 0;  
+    }  
+  
+    .legal-dot::after {  
+      content: '';  
+      position: absolute;  
+      width: 14px;  
+      height: 14px;  
+      background: rgba(0, 0, 0, 0.3);  
+      border-radius: 50%;  
+    }  
+  
+    .prev-move::after {  
+      content: '';  
+      position: absolute;  
+      top: 0;  
+      left: 0;  
+      width: 100%;  
+      height: 100%;  
+      background-color: yellow;  
+      opacity: 0.25;  
+      pointer-events: none;  
+    }  
+  
+    .comment-section {  
+      background: #fff;  
+      border: 1px solid #ccc;  
+      padding: 12px;  
+      border-radius: 8px;  
+      max-height: 300px;  
+      overflow-y: auto;  
+      width: 100%;  
+      box-sizing: border-box;  
+      margin-top: 20px;  
+    }  
+  
+    .comment-section h2 {  
+      margin-top: 0;  
+      font-size: 20px;  
+    }  
+  
+    #commentsContainer {  
+      margin-bottom: 12px;  
+    }  
+  
+    #commentsContainer p {  
+      background: #f5f5f5;  
+      padding: 6px;  
+      border-radius: 4px;  
+      margin-bottom: 4px;  
+    }  
+  
+    #commentInput {  
+      width: 100%;  
+      height: 60px;  
+      padding: 8px;  
+      font-size: 16px;  
+      box-sizing: border-box;  
+      margin-bottom: 8px;  
+      border: 1px solid #ccc;  
+      border-radius: 4px;  
+      resize: vertical;  
+    }  
+  
+    .comment-section button {  
+      width: 100%;  
+      background-color: #007bff;  
+      color: white;  
+      border: none;  
+      padding: 8px;  
+      font-size: 16px;  
+      border-radius: 4px;  
+    }  
+  
+    .back-button {  
+      text-decoration: none;  
+      background: linear-gradient(45deg, #ff416c, #ff4b2b);  
+      color: white;  
+      padding: 10px 20px;  
+      border-radius: 6px;  
+      font-size: 16px;  
+      font-weight: bold;  
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);  
+      transition: transform 0.2s, box-shadow 0.2s;  
+    }  
+  
+    .back-button:hover {  
+      transform: translateY(-2px);  
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);  
+    }  
   </style>  
 </head>  
-
-<body>   <!-- Header Section -->  <header class="main-header">  
+<body>  
+  
+ <!-- Header Section -->  
+<header class="main-header">  
   <div class="header-left">  
     <img src="CT logo.png" alt="CT Logo" class="logo" />  
     <h1 class="header-title">Chess Board</h1>  
   </div>  
   <a href="service3.html" class="back-button">← Back</a>  
-</header>  <!-- Header Section -->  <header class="main-header">  
+</header>  
+  
+<!-- Header Section -->  
+<header class="main-header">  
   <div id="particles-js"></div> <!-- Particle container -->  
   <div class="header-left">  
     <img src="CT logo.png" alt="CT Logo" class="logo" />  
     <h1 class="header-title">Chess Board</h1>  
   </div>  
   <a href="service3.html" class="back-button">← Back</a>  
-</header>  <!-- Header Styles -->  <style>  
+</header>  
+  
+<!-- Header Styles -->  
+<style>  
   .main-header {  
     position: fixed;  
     top: 0;  
@@ -285,7 +293,11 @@ button {
       font-size: 12px;  
     }  
   }  
-</style>  <!-- Particles.js Script -->  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>  <script>  
+</style>  
+  
+<!-- Particles.js Script -->  
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>  
+<script>  
   particlesJS("particles-js", {  
     "particles": {  
       "number": {  
@@ -328,31 +340,39 @@ button {
     },  
     "retina_detect": true  
   });  
-</script>    <div class="left-column">  
-    <h2 id="turnLabel">Turn: White</h2>  <!-- ✅ Move Order placed here -->  
-<div style="width: 100%; margin-bottom: 16px;">  
-  <h2>Move Order</h2>  
-  <div class="move-log" id="moveLog"></div>  
-</div>  
-
-<!-- Chess Board -->  
-<div class="chess-board" id="chessBoard"></div>  
-
-<!-- Control Buttons -->  
-<div class="buttons">  
-  <button onclick="undoMove()">⏮️ Reverse</button>  
-  <button onclick="redoMove()">⏭️ Forward</button>  
-</div>  
-
-<!-- Comments -->  
-<div class="comment-section">  
-  <h2>Comments</h2>  
-  <div id="commentsContainer"></div>  
-  <textarea id="commentInput" placeholder="Leave a comment..."></textarea>  
-  <button onclick="submitComment()">Post Comment</button>  
-</div>
-
-  </div>    <script>  
+</script>  
+  
+  
+  
+  
+  <div class="left-column">  
+    <h2 id="turnLabel">Turn: White</h2>  
+  
+    <!-- ✅ Move Order placed here -->  
+    <div style="width: 100%; margin-bottom: 16px;">  
+      <h2>Move Order</h2>  
+      <div class="move-log" id="moveLog"></div>  
+    </div>  
+  
+    <!-- Chess Board -->  
+    <div class="chess-board" id="chessBoard"></div>  
+  
+    <!-- Control Buttons -->  
+    <div class="buttons">  
+      <button onclick="undoMove()">⏮️ Reverse</button>  
+      <button onclick="redoMove()">⏭️ Forward</button>  
+    </div>  
+  
+    <!-- Comments -->  
+    <div class="comment-section">  
+      <h2>Comments</h2>  
+      <div id="commentsContainer"></div>  
+      <textarea id="commentInput" placeholder="Leave a comment..."></textarea>  
+      <button onclick="submitComment()">Post Comment</button>  
+    </div>  
+  </div>  
+  
+  <script>  
     function submitComment() {  
       const input = document.getElementById("commentInput");  
       const text = input.value.trim();  
@@ -363,7 +383,10 @@ button {
       container.appendChild(p);  
       input.value = "";  
     }  
-  </script>   <script>  
+  </script>  
+  
+  
+ <script>  
   const boardEl = document.getElementById("chessBoard");  
   const turnLabel = document.getElementById("turnLabel");  
   const moveLogEl = document.getElementById("moveLog");  
@@ -711,5 +734,3 @@ button {
     if (historyIndex < history.length - 1) {  
       historyIndex++;  
       const state = history[historyIndex];  
-  
-  
