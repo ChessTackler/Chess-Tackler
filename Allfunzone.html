@@ -141,56 +141,16 @@
     const wrongSound = document.getElementById('wrongSound');
 
     const quizData = [
-      {
-        q: "Who is the first World Chess Champion?",
-        options: ["Mikhail Tal", "Bobby Fischer", "Wilhelm Steinitz"],
-        answer: "Wilhelm Steinitz"
-      },
-      {
-        q: "Who is the youngest World Chess Champion?",
-        options: ["Ding Liren", "Gukesh D", "Garry Kasparov"],
-        answer: "Gukesh D"
-      },
-      {
-        q: "How many positions can be set in a chess board in start of a match?",
-        options: ["360", "960", "640"],
-        answer: "960"
-      },
-      {
-        q: "Who is the Current President of FIDE?",
-        options: ["Arkady Dvorkovich", "Viswanathan Anand", "Magnus Carlsen"],
-        answer: "Arkady Dvorkovich"
-      },
-      {
-        q: "How many total pieces does a Chess board have?",
-        options: ["16", "32", "64"],
-        answer: "32"
-      },
-      {
-        q: "How many squares does a Chess board have?",
-        options: ["84", "64", "34"],
-        answer: "64"
-      },
-      {
-        q: "Which Chess pieces can move Diagonally?",
-        options: ["Rook", "Knight", "Bishop"],
-        answer: "Bishop"
-      },
-      {
-        q: "Among the following which has more value?",
-        options: ["Rook", "Queen", "Knight"],
-        answer: "Queen"
-      },
-      {
-        q: "White King's square is?",
-        options: ["d1", "e1", "c1"],
-        answer: "e1"
-      },
-      {
-        q: "Who is the current Women World Chess Champion?",
-        options: ["Ju Wenjun", "Divya Deshmukh", "Koneru Humpy"],
-        answer: "Ju Wenjun"
-      }
+      { q: "Who is the first World Chess Champion?", options: ["Mikhail Tal", "Bobby Fischer", "Wilhelm Steinitz"], answer: "Wilhelm Steinitz" },
+      { q: "Who is the youngest World Chess Champion?", options: ["Ding Liren", "Gukesh D", "Garry Kasparov"], answer: "Gukesh D" },
+      { q: "How many positions can be set in a chess board in start of a match?", options: ["360", "960", "640"], answer: "960" },
+      { q: "Who is the Current President of FIDE?", options: ["Arkady Dvorkovich", "Viswanathan Anand", "Magnus Carlsen"], answer: "Arkady Dvorkovich" },
+      { q: "How many total pieces does a Chess board have?", options: ["16", "32", "64"], answer: "32" },
+      { q: "How many squares does a Chess board have?", options: ["84", "64", "34"], answer: "64" },
+      { q: "Which Chess pieces can move Diagonally?", options: ["Rook", "Knight", "Bishop"], answer: "Bishop" },
+      { q: "Among the following which has more value?", options: ["Rook", "Queen", "Knight"], answer: "Queen" },
+      { q: "White King's square is?", options: ["d1", "e1", "c1"], answer: "e1" },
+      { q: "Who is the current Women World Chess Champion?", options: ["Ju Wenjun", "Divya Deshmukh", "Koneru Humpy"], answer: "Ju Wenjun" }
     ];
 
     let usedQuestions = [];
@@ -200,27 +160,27 @@
       clickSound.play();
     }
 
-    function handleAnswer(selectedBtn, correctAnswer) {
-      const buttons = document.querySelectorAll("#content button");
-      buttons.forEach(btn => btn.disabled = true);
+    function handleAnswer(btn, correctAnswer) {
+      const allBtns = document.querySelectorAll('#content button');
+      allBtns.forEach(b => b.disabled = true);
 
-      const selectedText = selectedBtn.textContent.trim();
-      if (selectedText === correctAnswer) {
+      const isCorrect = btn.textContent.trim() === correctAnswer;
+      if (isCorrect) {
         correctSound.currentTime = 0;
         correctSound.play();
-        selectedBtn.classList.add('correct');
+        btn.classList.add('correct');
       } else {
         wrongSound.currentTime = 0;
         wrongSound.play();
-        selectedBtn.classList.add('wrong');
-        buttons.forEach(btn => {
-          if (btn.textContent.trim() === correctAnswer) {
-            btn.classList.add('correct');
+        btn.classList.add('wrong');
+        allBtns.forEach(b => {
+          if (b.textContent.trim() === correctAnswer) {
+            b.classList.add('correct');
           }
         });
       }
 
-      setTimeout(() => showRandomQuestion(), 1500);
+      setTimeout(showRandomQuestion, 1500);
     }
 
     function showPage(page) {
@@ -248,46 +208,22 @@
       let content = '';
       switch (name) {
         case 'Carlsen':
-          content = `
-            <h3>Magnus Carlsen</h3>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/Magnus_Carlsen_World_Chess_Championship_2018.jpg" alt="Magnus Carlsen"/>
-            <p>Norwegian Grandmaster and former World Champion, widely regarded as one of the greatest chess players in history.</p>
-          `;
+          content = `<h3>Magnus Carlsen</h3><img src="Magnus.png" alt="Magnus Carlsen"/><p>Norwegian Grandmaster and former World Champion, widely regarded as one of the greatest chess players in history.</p>`;
           break;
         case 'Fischer':
-          content = `
-            <h3>Bobby Fischer</h3>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/70/Bobby_Fischer_1972.jpg" alt="Bobby Fischer"/>
-            <p>American Grandmaster who became World Champion in 1972, known for revolutionizing chess in the US.</p>
-          `;
+          content = `<h3>Bobby Fischer</h3><img src="Bobbyfischer.jpg" alt="Bobby Fischer"/><p>American Grandmaster who became World Champion in 1972, known for revolutionizing chess in the US.</p>`;
           break;
         case 'Kasparov':
-          content = `
-            <h3>Garry Kasparov</h3>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Garry_Kasparov_2007.jpg" alt="Garry Kasparov"/>
-            <p>Russian Grandmaster and World Champion from 1985 to 2000, renowned for his deep strategic insight.</p>
-          `;
+          content = `<h3>Garry Kasparov</h3><img src="Garry.jpeg" alt="Garry Kasparov"/><p>Russian Grandmaster and World Champion from 1985 to 2000, renowned for his deep strategic insight.</p>`;
           break;
         case 'Anand':
-          content = `
-            <h3>Viswanathan Anand</h3>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Viswanathan_Anand_2016.jpg" alt="Viswanathan Anand"/>
-            <p>Indian Grandmaster and former World Champion, a key figure in popularizing chess in India.</p>
-          `;
+          content = `<h3>Viswanathan Anand</h3><img src="Vishy.jpg" alt="Viswanathan Anand"/><p>Indian Grandmaster and former World Champion, a key figure in popularizing chess in India.</p>`;
           break;
         case 'Tal':
-          content = `
-            <h3>Mikhail Tal</h3>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Mikhail_Tal_1961.jpg" alt="Mikhail Tal"/>
-            <p>Latvian Grandmaster and former World Champion, famous for his daring and imaginative attacking style.</p>
-          `;
+          content = `<h3>Mikhail Tal</h3><img src="Mikhailtal.jpeg" alt="Mikhail Tal"/><p>Latvian Grandmaster and former World Champion, famous for his daring and imaginative attacking style.</p>`;
           break;
         case 'Gukesh':
-          content = `
-            <h3>Gukesh D</h3>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Gukesh_D_2022.jpg" alt="Gukesh D"/>
-            <p>Indian chess prodigy and one of the youngest players to achieve the Grandmaster title, current rising star on the global stage.</p>
-          `;
+          content = `<h3>Gukesh D</h3><img src="Gukesh.jpg" alt="Gukesh D"/><p>Indian chess prodigy and one of the youngest Grandmasters ever. Youngest World Champion at age 18.</p>`;
           break;
       }
       infoBox.innerHTML = content;
@@ -295,8 +231,9 @@
 
     function showRandomQuestion() {
       const content = document.getElementById('content');
-      if (usedQuestions.length === quizData.length) {
-        content.innerHTML = `<h2>🎉 You've completed all the questions!</h2><p>Refresh to restart the quiz.</p>`;
+
+      if (usedQuestions.length >= quizData.length) {
+        content.innerHTML = `<h2>🎉 You've completed all the questions!</h2><p>Refresh the page to restart the quiz.</p>`;
         return;
       }
 
@@ -307,15 +244,15 @@
 
       usedQuestions.push(index);
       const question = quizData[index];
-
-      let buttonsHTML = question.options.map(opt =>
-        `<button onclick="handleAnswer(this, '${question.answer}')">${opt}</button>`
-      ).join('');
+      const buttons = question.options.map(opt => {
+        const safeOpt = opt.replace(/'/g, "\\'");
+        return `<button onclick="handleAnswer(this, '${question.answer.replace(/'/g, "\\'")}')">${safeOpt}</button>`;
+      }).join('');
 
       content.innerHTML = `
         <h2>🧠 Quiz Time!</h2>
         <p>${question.q}</p>
-        ${buttonsHTML}
+        ${buttons}
       `;
     }
   </script>
