@@ -3,233 +3,278 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fun Zone – Chess Tackler</title>
+  <title>Balloon Shooter Game</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1c1c3c, #2c2c54);
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: url('BG Fun2.png') center center / cover no-repeat;
+    }
+
+    .fallingObject {
+      position: absolute;
+      width: 60px;
+      height: auto;
+      cursor: crosshair;
+    }
+
+    #laser {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 20px;
+      background: url('Laser1.png') no-repeat center;
+      background-size: cover;
+    }
+
+    #scoreBoard {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
       color: #fff;
-      overflow-x: hidden;
+      text-shadow: 1px 1px 2px #000;
+      z-index: 1000;
     }
 
-    /* Header */
-    header {
-      display: flex;
-      align-items: center;
-      padding: 15px 20px;
-      background: rgba(0, 0, 0, 0.7);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
-
-    header img {
-      height: 45px;
-      margin-right: 15px;
-    }
-
-    header h1 {
-      font-size: 1.5rem;
-      margin: 0;
-    }
-
-    /* Menu */
-    .menu {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
-      margin: 30px 10px 20px;
-    }
-
-    .menu button {
-      background-color: #ffcd3c;
-      color: #000;
-      border: none;
-      padding: 12px 20px;
-      font-size: 1rem;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s ease;
+    #highScoreBoard {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      color: red;
+      text-shadow: 1px 1px 2px #000;
+      z-index: 1000;
       font-weight: bold;
-      animation: fadeIn 1s;
     }
 
-    .menu button:hover {
-      background-color: #f0b400;
-      transform: scale(1.05);
-    }
-
-    /* Content */
-    .content {
-      background-color: #ffffff;
-      color: #333;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-      max-width: 700px;
-      margin: auto;
+    #gameOverScreen {
+      display: none;
+      position: absolute;
+      top: 35%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       text-align: center;
-      animation: fadeIn 0.8s;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 30px 50px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px #000;
+      z-index: 1000;
     }
 
-    .content button {
-      margin: 10px;
+    #finalScore {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    #gameOverText {
+      font-size: 48px;
+      color: red;
+      margin-bottom: 20px;
+    }
+
+    #restartBtn, #startBtn {
+      font-size: 18px;
       padding: 10px 20px;
-      border-radius: 8px;
+      background-color: #28a745;
+      color: white;
       border: none;
+      border-radius: 6px;
       cursor: pointer;
-      background-color: #ffd166;
-      font-weight: bold;
     }
 
-    .champion-card {
-      background: #f9f9f9;
-      padding: 15px;
-      margin-top: 15px;
-      border-radius: 10px;
+    #restartBtn:hover, #startBtn:hover {
+      background-color: #218838;
     }
 
-    .champion-card img {
-      max-width: 100px;
-      border-radius: 50%;
-    }
-
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Mobile Responsiveness */
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 1.2rem;
-      }
-
-      .menu button {
-        flex: 1 1 100%;
-        margin: 5px;
-      }
-
-      .content {
-        width: 90%;
-        padding: 20px;
-      }
+    #startBtn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1001;
     }
   </style>
 </head>
 <body>
+  <div id="gameArea">
+    <div id="scoreBoard">Score: 0</div>
+    <div id="highScoreBoard">High Score: 0</div>
+    <div id="laser"></div>
 
-  <!-- Header -->
-  <header>
-    <img src="CT logo.png" alt="CT Logo">
-    <h1>Fun Zone – Chess Tackler</h1>
-  </header>
+    <!-- Start Button -->
+    <button id="startBtn">Start Game</button>
 
-  <!-- Navigation -->
-  <div class="menu">
-    <button onclick="playSound(); showPage('quiz')">🧠 Quizzes</button>
-    <button onclick="playSound(); showPage('games')">🎮 Games</button>
-    <button onclick="playSound(); showPage('champions')">🏆 Know Your Champions</button>
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen">
+      <div id="finalScore">Final Score: 0</div>
+      <div id="gameOverText">Game Over</div>
+      <button id="restartBtn">Try Again</button>
+    </div>
+
+    <!-- Sound Effects -->
+    <audio id="popSound" src="Pop.mp3"></audio>
+    <audio id="bombSound" src="Bomb.mp3"></audio>
+    <audio id="gameOverSound" src="gameover.mp3"></audio>
   </div>
 
-  <!-- Content Area -->
-  <div id="content" class="content">
-    <p>Welcome to the Chess Tackler Fun Zone! Choose an option above.</p>
-  </div>
-
-  <!-- Sound Effects -->
-  <audio id="clickSound" src="click.mp3"></audio>
-  <audio id="correctSound" src="correct.mp3"></audio>
-  <audio id="wrongSound" src="wrong.mp3"></audio>
-
-  <!-- JavaScript -->
   <script>
-    const clickSound = document.getElementById('clickSound');
-    const correctSound = document.getElementById('correctSound');
-    const wrongSound = document.getElementById('wrongSound');
+    const gameArea = document.getElementById("gameArea");
+    const scoreBoard = document.getElementById("scoreBoard");
+    const highScoreBoard = document.getElementById("highScoreBoard");
+    const gameOverScreen = document.getElementById("gameOverScreen");
+    const finalScoreText = document.getElementById("finalScore");
+    const restartBtn = document.getElementById("restartBtn");
+    const startBtn = document.getElementById("startBtn");
 
-    function playSound() {
-      clickSound.currentTime = 0;
-      clickSound.play();
+    const objectImages = [
+      'Ballons1.png',
+      'Ballons2.png',
+      'Ballons3.png',
+      'Ballons4.png',
+      'Bomb1.png'
+    ];
+
+    let score = 0;
+    let highScore = 0;
+    let gameRunning = false; // Initially false so game doesn't start automatically
+    let spawnTimeouts = [];
+
+    // Load high score from localStorage if available
+    if(localStorage.getItem('highScore')) {
+      highScore = parseInt(localStorage.getItem('highScore'));
+      highScoreBoard.textContent = "High Score: " + highScore;
     }
 
-    function playCorrect() {
-      correctSound.currentTime = 0;
-      correctSound.play();
-      alert("Correct! 🎉");
-    }
-
-    function playWrong() {
-      wrongSound.currentTime = 0;
-      wrongSound.play();
-      alert("Oops! Try again.");
-    }
-
-    function showPage(page) {
-      const content = document.getElementById('content');
-
-      if (page === 'quiz') {
-        content.innerHTML = `
-          <h2>🧠 Quiz Time!</h2>
-          <p>What is the capital of Japan?</p>
-          <button onclick="playCorrect()">Tokyo</button>
-          <button onclick="playWrong()">Beijing</button>
-          <button onclick="playWrong()">Seoul</button>
-        `;
-      } else if (page === 'games') {
-        content.innerHTML = `
-          <h2>🎮 Clicker Game</h2>
-          <p>Clicks: <span id="counter">0</span></p>
-          <button onclick="playSound(); incrementCounter()">Click Me!</button>
-        `;
-      } else if (page === 'champions') {
-        content.innerHTML = `
-          <h2>🏆 Know Your Champions</h2>
-          <p>Click to learn about a champion:</p>
-          <button onclick="playSound(); showChampion('Messi')">Lionel Messi</button>
-          <button onclick="playSound(); showChampion('Marie')">Marie Curie</button>
-          <button onclick="playSound(); showChampion('Einstein')">Albert Einstein</button>
-          <div id="champion-info" class="champion-card"></div>
-        `;
+    // Helper to play overlapping sounds
+    function playSound(id) {
+      const original = document.getElementById(id);
+      if (original) {
+        const clone = original.cloneNode();
+        clone.play();
       }
     }
 
-    function incrementCounter() {
-      const span = document.getElementById('counter');
-      span.textContent = parseInt(span.textContent) + 1;
-    }
-
-    function showChampion(name) {
-      const infoBox = document.getElementById('champion-info');
-      let content = '';
-
-      if (name === 'Messi') {
-        content = `
-          <h3>Lionel Messi</h3>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Lionel_Messi_20180626.jpg" alt="Messi"/>
-          <p>Legendary footballer from Argentina, known for his incredible dribbling, vision, and goal-scoring.</p>
-        `;
-      } else if (name === 'Marie') {
-        content = `
-          <h3>Marie Curie</h3>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6d/Marie_Curie_c1920.jpg" alt="Marie Curie"/>
-          <p>First woman to win a Nobel Prize and the only person to win in two scientific fields.</p>
-        `;
-      } else if (name === 'Einstein') {
-        content = `
-          <h3>Albert Einstein</h3>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/d/d3/Albert_Einstein_Head.jpg" alt="Einstein"/>
-          <p>Theoretical physicist, best known for the theory of relativity and E=mc².</p>
-        `;
+    function updateScore(newScore) {
+      score = newScore;
+      scoreBoard.textContent = "Score: " + score;
+      if(score > highScore) {
+        highScore = score;
+        highScoreBoard.textContent = "High Score: " + highScore;
+        localStorage.setItem('highScore', highScore);
       }
-
-      infoBox.innerHTML = content;
     }
+
+    function createFallingObject() {
+      if (!gameRunning) return;
+
+      const img = document.createElement("img");
+      img.src = objectImages[Math.floor(Math.random() * objectImages.length)];
+      img.classList.add("fallingObject");
+      img.style.left = Math.random() * (window.innerWidth - 60) + "px";
+      gameArea.appendChild(img);
+
+      let topPosition = -60;
+      const fallSpeed = Math.random() * 2 + 1.5;
+
+      const fall = setInterval(() => {
+        if (!gameRunning) {
+          clearInterval(fall);
+          img.remove();
+          return;
+        }
+
+        topPosition += fallSpeed;
+        img.style.top = topPosition + "px";
+
+        const gameHeight = window.innerHeight;
+        const ninetySevenPercent = gameHeight * 0.97;
+
+        // End game if balloon hits 97% of screen
+        if (topPosition + 60 >= ninetySevenPercent) {
+          if (img.src.includes("Ballons")) {
+            playSound("gameOverSound");
+            endGame();
+          }
+          clearInterval(fall);
+          img.remove();
+          return;
+        }
+
+        // Fallback condition at very bottom
+        if (topPosition + 60 >= gameHeight - 20) {
+          if (img.src.includes("Ballons")) {
+            playSound("gameOverSound");
+            endGame();
+          }
+          clearInterval(fall);
+          img.remove();
+        }
+      }, 16);
+
+      img.onclick = function () {
+        if (!gameRunning) return;
+
+        if (img.src.includes("Bomb1.png")) {
+          playSound("bombSound");
+          endGame();
+        } else if (img.src.includes("Ballons")) {
+          updateScore(score + 50);
+          playSound("popSound");
+        }
+
+        clearInterval(fall);
+        img.remove();
+      };
+
+      img.ontouchstart = img.onclick;
+    }
+
+    function spawnLoop() {
+      if (!gameRunning) return;
+      createFallingObject();
+      const timeout = setTimeout(spawnLoop, Math.random() * 800 + 400);
+      spawnTimeouts.push(timeout);
+    }
+
+    function endGame() {
+      if (!gameRunning) return;
+      gameRunning = false;
+
+      // Stop future spawns
+      spawnTimeouts.forEach(clearTimeout);
+      spawnTimeouts = [];
+
+      // Remove existing balloons
+      document.querySelectorAll('.fallingObject').forEach(el => el.remove());
+
+      finalScoreText.textContent = "Final Score: " + score;
+      gameOverScreen.style.display = "block";
+
+      // Don't show start button after game over
+      // startBtn.style.display = "block"; // removed this line
+    }
+
+    function startGame() {
+      score = 0;
+      updateScore(score);
+      gameRunning = true;
+      gameOverScreen.style.display = "none";
+      startBtn.style.display = "none";
+      spawnLoop();
+    }
+
+    restartBtn.addEventListener("click", startGame);
+    startBtn.addEventListener("click", startGame);
   </script>
 </body>
 </html>
