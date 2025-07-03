@@ -91,21 +91,18 @@
       .menu button { flex: 1 1 100%; margin: 5px; }
       .content { width: 90%; padding: 20px; }
     }
-
     button.correct {
       background-color: #28a745 !important;
       color: white !important;
       box-shadow: 0 0 10px #28a745;
       transform: scale(1.05);
     }
-
     button.wrong {
       background-color: #dc3545 !important;
       color: white !important;
       box-shadow: 0 0 10px #dc3545;
       transform: scale(1.05);
     }
-
     button:disabled {
       cursor: not-allowed;
       opacity: 0.6;
@@ -150,10 +147,10 @@
         answer: "Wilhelm Steinitz"
       },
       {
-  q: "Who is the youngest World Chess Champion?",
-  options: ["Ding Liren", "Gukesh D", "Garry Kasparov"],
-  answer: "Gukesh D"
-},
+        q: "Who is the youngest World Chess Champion?",
+        options: ["Ding Liren", "Gukesh D", "Garry Kasparov"],
+        answer: "Gukesh D"
+      },
       {
         q: "How many positions can be set in a chess board in start of a match?",
         options: ["360", "960", "640"],
@@ -216,7 +213,6 @@
         wrongSound.currentTime = 0;
         wrongSound.play();
         selectedBtn.classList.add('wrong');
-        // Highlight the correct one
         buttons.forEach(btn => {
           if (btn.textContent.trim() === correctAnswer) {
             btn.classList.add('correct');
@@ -235,10 +231,13 @@
       } else if (page === 'champions') {
         content.innerHTML = `
           <h2>🏆 Know Your Champions</h2>
-          <p>Click to learn about a champion:</p>
-          <button onclick="playSound(); showChampion('Messi')">Lionel Messi</button>
-          <button onclick="playSound(); showChampion('Marie')">Marie Curie</button>
-          <button onclick="playSound(); showChampion('Einstein')">Albert Einstein</button>
+          <p>Click to learn about a chess champion:</p>
+          <button onclick="playSound(); showChampion('Carlsen')">Magnus Carlsen</button>
+          <button onclick="playSound(); showChampion('Fischer')">Bobby Fischer</button>
+          <button onclick="playSound(); showChampion('Kasparov')">Garry Kasparov</button>
+          <button onclick="playSound(); showChampion('Anand')">Viswanathan Anand</button>
+          <button onclick="playSound(); showChampion('Tal')">Mikhail Tal</button>
+          <button onclick="playSound(); showChampion('Gukesh')">Gukesh D</button>
           <div id="champion-info" class="champion-card"></div>
         `;
       }
@@ -247,24 +246,49 @@
     function showChampion(name) {
       const infoBox = document.getElementById('champion-info');
       let content = '';
-      if (name === 'Messi') {
-        content = `
-          <h3>Lionel Messi</h3>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/Lionel_Messi_20180626.jpg" alt="Messi"/>
-          <p>Legendary footballer from Argentina, known for his incredible dribbling, vision, and goal-scoring.</p>
-        `;
-      } else if (name === 'Marie') {
-        content = `
-          <h3>Marie Curie</h3>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6d/Marie_Curie_c1920.jpg" alt="Marie Curie"/>
-          <p>First woman to win a Nobel Prize and the only person to win in two scientific fields.</p>
-        `;
-      } else if (name === 'Einstein') {
-        content = `
-          <h3>Albert Einstein</h3>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/d/d3/Albert_Einstein_Head.jpg" alt="Einstein"/>
-          <p>Theoretical physicist, best known for the theory of relativity and E=mc².</p>
-        `;
+      switch (name) {
+        case 'Carlsen':
+          content = `
+            <h3>Magnus Carlsen</h3>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/Magnus_Carlsen_World_Chess_Championship_2018.jpg" alt="Magnus Carlsen"/>
+            <p>Norwegian Grandmaster and former World Champion, widely regarded as one of the greatest chess players in history.</p>
+          `;
+          break;
+        case 'Fischer':
+          content = `
+            <h3>Bobby Fischer</h3>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/70/Bobby_Fischer_1972.jpg" alt="Bobby Fischer"/>
+            <p>American Grandmaster who became World Champion in 1972, known for revolutionizing chess in the US.</p>
+          `;
+          break;
+        case 'Kasparov':
+          content = `
+            <h3>Garry Kasparov</h3>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Garry_Kasparov_2007.jpg" alt="Garry Kasparov"/>
+            <p>Russian Grandmaster and World Champion from 1985 to 2000, renowned for his deep strategic insight.</p>
+          `;
+          break;
+        case 'Anand':
+          content = `
+            <h3>Viswanathan Anand</h3>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Viswanathan_Anand_2016.jpg" alt="Viswanathan Anand"/>
+            <p>Indian Grandmaster and former World Champion, a key figure in popularizing chess in India.</p>
+          `;
+          break;
+        case 'Tal':
+          content = `
+            <h3>Mikhail Tal</h3>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Mikhail_Tal_1961.jpg" alt="Mikhail Tal"/>
+            <p>Latvian Grandmaster and former World Champion, famous for his daring and imaginative attacking style.</p>
+          `;
+          break;
+        case 'Gukesh':
+          content = `
+            <h3>Gukesh D</h3>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Gukesh_D_2022.jpg" alt="Gukesh D"/>
+            <p>Indian chess prodigy and one of the youngest players to achieve the Grandmaster title, current rising star on the global stage.</p>
+          `;
+          break;
       }
       infoBox.innerHTML = content;
     }
