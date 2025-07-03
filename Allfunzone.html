@@ -160,10 +160,8 @@
 </head>
 <body>
 
-  <!-- Particle Background -->
   <div id="particles-js"></div>
 
-  <!-- Header -->
   <header>
     <div class="header-left">
       <img src="CT logo.png" alt="CT Logo">
@@ -172,24 +170,20 @@
     <a href="index.html" class="back-button">⟵ Back</a>
   </header>
 
-  <!-- Navigation Buttons -->
   <div class="menu">
     <button onclick="playSound(); showPage('quiz')">🧠 Quizzes</button>
     <button onclick="playSound(); window.location.href='Funzone.html'">🎮 Games</button>
     <button onclick="playSound(); showPage('champions')">🏆 Know Your Champions</button>
   </div>
 
-  <!-- Dynamic Content -->
   <div id="content" class="content">
     <p>Welcome to the Chess Tackler Fun Zone! Choose an option above.</p>
   </div>
 
-  <!-- Audio -->
   <audio id="clickSound" src="click.mp3"></audio>
   <audio id="correctSound" src="correct.mp3"></audio>
   <audio id="wrongSound" src="wronganswer.mp3"></audio>
 
-  <!-- Particles.js Script -->
   <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
   <script>
     particlesJS('particles-js', {
@@ -234,7 +228,6 @@
     });
   </script>
 
-  <!-- JavaScript for Interactions -->
   <script>
     const clickSound = document.getElementById('clickSound');
     const correctSound = document.getElementById('correctSound');
@@ -259,6 +252,7 @@
     ];
 
     let usedQuestions = [];
+    let score = 0;
 
     function playSound() {
       clickSound.currentTime = 0;
@@ -274,6 +268,7 @@
         correctSound.currentTime = 0;
         correctSound.play();
         btn.classList.add('correct');
+        score++;
       } else {
         wrongSound.currentTime = 0;
         wrongSound.play();
@@ -292,6 +287,7 @@
       const content = document.getElementById('content');
       if (page === 'quiz') {
         usedQuestions = [];
+        score = 0;
         showRandomQuestion();
       } else if (page === 'champions') {
         content.innerHTML = `
@@ -338,7 +334,11 @@
       const content = document.getElementById('content');
 
       if (usedQuestions.length >= quizData.length) {
-        content.innerHTML = `<h2>🎉 You've completed all the questions!</h2><p>Refresh the page to restart the quiz.</p>`;
+        content.innerHTML = `
+          <h2>🎉 You've completed all the questions!</h2>
+          <p>You got <strong>${score}</strong> out of <strong>${quizData.length}</strong> correct.</p>
+          <p>Refresh the page to restart the quiz.</p>
+        `;
         return;
       }
 
