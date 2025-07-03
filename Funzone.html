@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fun Zone - Chess Tackler</title>
+  <title>Fun Zone – Chess Tackler</title>
   <style>
     * {
       box-sizing: border-box;
@@ -17,6 +17,7 @@
       overflow-x: hidden;
     }
 
+    /* Header */
     header {
       display: flex;
       align-items: center;
@@ -35,6 +36,7 @@
       margin: 0;
     }
 
+    /* Menu */
     .menu {
       display: flex;
       justify-content: center;
@@ -61,6 +63,7 @@
       transform: scale(1.05);
     }
 
+    /* Content */
     .content {
       background-color: #ffffff;
       color: #333;
@@ -95,11 +98,13 @@
       border-radius: 50%;
     }
 
+    /* Animations */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(15px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* Mobile Responsiveness */
     @media (max-width: 600px) {
       header h1 {
         font-size: 1.2rem;
@@ -138,23 +143,60 @@
   </div>
 
   <!-- Sound Effects -->
-  <audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-29.mp3"></audio>
-  <audio id="correctSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
-  <audio id="wrongSound" src="https://www.soundjay.com/button/beep-10.wav"></audio>
+  <audio id="clickSound" src="click.mp3"></audio>
+  <audio id="correctSound" src="correct.mp3"></audio>
+  <audio id="wrongSound" src="wrong.mp3"></audio>
 
+  <!-- JavaScript -->
   <script>
+    const clickSound = document.getElementById('clickSound');
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
+
     function playSound() {
-      document.getElementById('clickSound').play();
+      clickSound.currentTime = 0;
+      clickSound.play();
     }
 
     function playCorrect() {
-      document.getElementById('correctSound').play();
+      correctSound.currentTime = 0;
+      correctSound.play();
       alert("Correct! 🎉");
     }
 
     function playWrong() {
-      document.getElementById('wrongSound').play();
+      wrongSound.currentTime = 0;
+      wrongSound.play();
       alert("Oops! Try again.");
+    }
+
+    function showPage(page) {
+      const content = document.getElementById('content');
+
+      if (page === 'quiz') {
+        content.innerHTML = `
+          <h2>🧠 Quiz Time!</h2>
+          <p>What is the capital of Japan?</p>
+          <button onclick="playCorrect()">Tokyo</button>
+          <button onclick="playWrong()">Beijing</button>
+          <button onclick="playWrong()">Seoul</button>
+        `;
+      } else if (page === 'games') {
+        content.innerHTML = `
+          <h2>🎮 Clicker Game</h2>
+          <p>Clicks: <span id="counter">0</span></p>
+          <button onclick="playSound(); incrementCounter()">Click Me!</button>
+        `;
+      } else if (page === 'champions') {
+        content.innerHTML = `
+          <h2>🏆 Know Your Champions</h2>
+          <p>Click to learn about a champion:</p>
+          <button onclick="playSound(); showChampion('Messi')">Lionel Messi</button>
+          <button onclick="playSound(); showChampion('Marie')">Marie Curie</button>
+          <button onclick="playSound(); showChampion('Einstein')">Albert Einstein</button>
+          <div id="champion-info" class="champion-card"></div>
+        `;
+      }
     }
 
     function incrementCounter() {
@@ -188,44 +230,6 @@
 
       infoBox.innerHTML = content;
     }
-
-    function showPage(page) {
-      const content = document.getElementById('content');
-      content.classList.remove('fadeIn'); // reset animation
-      void content.offsetWidth; // reflow
-      content.classList.add('fadeIn');
-
-      if (page === 'quiz') {
-        content.innerHTML = `
-          <h2>🧠 Quiz Time!</h2>
-          <p>What is the capital of Japan?</p>
-          <button onclick="playCorrect()">Tokyo</button>
-          <button onclick="playWrong()">Beijing</button>
-          <button onclick="playWrong()">Seoul</button>
-        `;
-      } else if (page === 'games') {
-        // Fetch and load Funzone.html content
-        fetch('Funzone.html')
-          .then(response => response.text())
-          .then(html => {
-            content.innerHTML = html;
-          })
-          .catch(error => {
-            content.innerHTML = "<p>⚠️ Unable to load game content. Please try again later.</p>";
-            console.error("Error loading Funzone.html:", error);
-          });
-      } else if (page === 'champions') {
-        content.innerHTML = `
-          <h2>🏆 Know Your Champions</h2>
-          <p>Click to learn about a champion:</p>
-          <button onclick="showChampion('Messi')">Lionel Messi</button>
-          <button onclick="showChampion('Marie')">Marie Curie</button>
-          <button onclick="showChampion('Einstein')">Albert Einstein</button>
-          <div id="champion-info" class="champion-card"></div>
-        `;
-      }
-    }
   </script>
-
 </body>
 </html>
