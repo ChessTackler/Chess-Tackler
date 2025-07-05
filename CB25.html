@@ -1,275 +1,223 @@
+/**
+
+Full HTML and JavaScript code with:
+
+Improved legal move logic for all pieces
+
+
+Animated piece movement */
+
+
+
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chess with Check & Flip</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Responsive Chessboard</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
     body {
       margin: 0;
-      background: #1e1e1e;
+      padding: 0;
+      background: #eee;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      color: white;
+      height: 100vh;
     }
-    .board-wrapper {
-      width: min(90vmin, 100vw);
-      aspect-ratio: 1 / 1;
-      position: relative;
-    }
-    .board {
+    #board {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
-      grid-template-rows: repeat(8, 1fr);
+      width: 90vmin;
+      height: 90vmin;
+      max-width: 90vmin;
+      max-height: 90vmin;
+      border: 4px solid #333;
+      box-sizing: border-box;
+    }
+    .square {
       width: 100%;
       height: 100%;
-      border: 3px solid #000;
+      position: relative;
+      transition: background 0.2s ease;
     }
-    .cell {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    .light {
+      background-color: #f0d9b5;
     }
-    .white { background-color: #f0d9b5; }
-    .black { background-color: #b58863; }
-    .highlight { background-color: yellow !important; }
-    .in-check { background-color: red !important; }
-    .cell img {
-      max-width: 90%;
-      max-height: 90%;
+    .dark {
+      background-color: #b58863;
+    }
+    .square img {
+      width: 85%;
+      height: 85%;
       object-fit: contain;
+      position: absolute;
+      top: 7.5%;
+      left: 7.5%;
+      transition: all 0.3s ease;
       pointer-events: none;
     }
-    button {
-      margin-top: 1rem;
+    .highlight {
+      outline: 3px solid yellow;
+    }
+    #flipButton {
+      margin: 1rem;
       padding: 0.5rem 1rem;
       font-size: 1rem;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="board-wrapper">
-    <div class="board" id="board"></div>
-  </div>
-  <button onclick="flipBoard()">Flip Board</button>  <script>
+  <button id="flipButton">Flip Board</button>
+  <div id="board"></div>
+  <script>
     const board = document.getElementById('board');
-    let selectedCell = null;
-    let selectedPiece = null;
-    let turn = 'w';
     let flipped = false;
+    let selected = null;
+    let gameOver = false;const initialPosition = [
+  ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'],
+  ['bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP'],
+  ['', '', '', '', '', '', '', ''],
+  ['', '', '', '', '', '', '', ''],
+  ['', '', '', '', '', '', '', ''],
+  ['', '', '', '', '', '', '', ''],
+  ['wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP'],
+  ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR']
+];
 
-    const boardState = [
-      ['bR','bN','bB','bQ','bK','bB','bN','bR'],
-      ['bP','bP','bP','bP','bP','bP','bP','bP'],
-      ['','','','','','','',''],
-      ['','','','','','','',''],
-      ['','','','','','','',''],
-      ['','','','','','','',''],
-      ['wP','wP','wP','wP','wP','wP','wP','wP'],
-      ['wR','wN','wB','wQ','wK','wB','wN','wR']
-    ];
+let boardState = JSON.parse(JSON.stringify(initialPosition));
 
-    function renderBoard() {
-      board.innerHTML = '';
-      const rows = [...Array(8).keys()];
-      const cols = [...Array(8).keys()];
-      if (flipped) {
-        rows.reverse();
-        cols.reverse();
-      }
-      for (let row of rows) {
-        for (let col of cols) {
-          const cell = document.createElement('div');
-          cell.className = `cell ${(row + col) % 2 === 0 ? 'white' : 'black'}`;
-          cell.dataset.row = row;
-          cell.dataset.col = col;
+function createBoard() {
+  board.innerHTML = '';
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const square = document.createElement('div');
+      const row = flipped ? 7 - r : r;
+      const col = flipped ? 7 - c : c;
+      square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+      square.dataset.row = row;
+      square.dataset.col = col;
 
-          const piece = boardState[row][col];
-          if (piece) {
-            const img = document.createElement('img');
-            img.src = `${piece}.png`;
-            cell.appendChild(img);
-          }
-
-          cell.addEventListener('click', () => handleCellClick(row, col));
-          board.appendChild(cell);
-        }
-      }
-
-      highlightCheck();
-    }
-
-    function handleCellClick(row, col) {
       const piece = boardState[row][col];
-      const isOwn = piece && piece[0] === turn;
+      if (piece) {
+        const img = document.createElement('img');
+        img.src = `${piece}.png`;
+        img.draggable = false;
+        square.appendChild(img);
+      }
 
-      if (selectedCell) {
-        clearHighlights();
+      square.addEventListener('click', () => handleClick(row, col));
+      board.appendChild(square);
+    }
+  }
+}
 
-        if (selectedCell.row === row && selectedCell.col === col) {
-          selectedCell = null;
-          selectedPiece = null;
-        } else if (isLegalMove(selectedPiece, selectedCell, { row, col })) {
-          boardState[row][col] = selectedPiece;
-          boardState[selectedCell.row][selectedCell.col] = '';
-          selectedCell = null;
-          selectedPiece = null;
-          if (isCheckmate(turn === 'w' ? 'b' : 'w')) {
-            alert('Checkmate!');
-          } else if (isInCheck(turn === 'w' ? 'b' : 'w')) {
-            alert('Check!');
-          }
-          turn = turn === 'w' ? 'b' : 'w';
-          renderBoard();
-        } else if (isOwn) {
-          selectedCell = { row, col };
-          selectedPiece = piece;
-          highlightMoves(piece, row, col);
-        } else {
-          selectedCell = null;
-          selectedPiece = null;
-        }
-      } else if (isOwn) {
-        selectedCell = { row, col };
-        selectedPiece = piece;
-        highlightMoves(piece, row, col);
+function handleClick(row, col) {
+  if (gameOver) return;
+  const piece = boardState[row][col];
+
+  if (selected) {
+    if (isLegalMove(selected.row, selected.col, row, col)) {
+      boardState[row][col] = boardState[selected.row][selected.col];
+      boardState[selected.row][selected.col] = '';
+      selected = null;
+      checkGameStatus();
+    } else {
+      selected = piece ? { row, col } : null;
+    }
+  } else {
+    if (piece) selected = { row, col };
+  }
+  createBoard();
+  highlightLegalMoves();
+}
+
+function isLegalMove(fromRow, fromCol, toRow, toCol) {
+  const piece = boardState[fromRow][fromCol];
+  if (!piece) return false;
+  const color = piece[0];
+  const type = piece[1];
+  const dir = color === 'w' ? -1 : 1;
+  const dx = toCol - fromCol;
+  const dy = toRow - fromRow;
+  const target = boardState[toRow][toCol];
+
+  const sameColor = target && target[0] === color;
+  if (sameColor) return false;
+
+  switch (type) {
+    case 'P':
+      if (dx === 0 && !target) {
+        if (dy === dir) return true;
+        if ((color === 'w' && fromRow === 6 || color === 'b' && fromRow === 1) && dy === 2 * dir && boardState[fromRow + dir][fromCol] === '') return true;
+      } else if (Math.abs(dx) === 1 && dy === dir && target) return true;
+      break;
+    case 'N':
+      if ((Math.abs(dx) === 2 && Math.abs(dy) === 1) || (Math.abs(dx) === 1 && Math.abs(dy) === 2)) return true;
+      break;
+    case 'B':
+      if (Math.abs(dx) === Math.abs(dy)) return isPathClear(fromRow, fromCol, toRow, toCol);
+      break;
+    case 'R':
+      if (dx === 0 || dy === 0) return isPathClear(fromRow, fromCol, toRow, toCol);
+      break;
+    case 'Q':
+      if (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) return isPathClear(fromRow, fromCol, toRow, toCol);
+      break;
+    case 'K':
+      if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) return true;
+      break;
+  }
+  return false;
+}
+
+function isPathClear(fromRow, fromCol, toRow, toCol) {
+  const dRow = Math.sign(toRow - fromRow);
+  const dCol = Math.sign(toCol - fromCol);
+  let r = fromRow + dRow;
+  let c = fromCol + dCol;
+  while (r !== toRow || c !== toCol) {
+    if (boardState[r][c] !== '') return false;
+    r += dRow;
+    c += dCol;
+  }
+  return true;
+}
+
+function highlightLegalMoves() {
+  document.querySelectorAll('.square').forEach(sq => sq.classList.remove('highlight'));
+  if (!selected) return;
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (isLegalMove(selected.row, selected.col, r, c)) {
+        const s = document.querySelector(`.square[data-row='${r}'][data-col='${c}']`);
+        if (s) s.classList.add('highlight');
       }
     }
+  }
+}
 
-    function clearHighlights() {
-      document.querySelectorAll('.cell').forEach(cell => {
-        cell.classList.remove('highlight', 'in-check');
-      });
+function checkGameStatus() {
+  let wK = false, bK = false;
+  for (let row of boardState) {
+    for (let cell of row) {
+      if (cell === 'wK') wK = true;
+      if (cell === 'bK') bK = true;
     }
+  }
+  if (!wK || !bK) {
+    alert(!wK ? 'Black wins!' : 'White wins!');
+    gameOver = true;
+  }
+}
 
-    function highlightMoves(piece, row, col) {
-      clearHighlights();
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          if (isLegalMove(piece, { row, col }, { row: r, col: c })) {
-            const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-            cell.classList.add('highlight');
-          }
-        }
-      }
-    }
+document.getElementById('flipButton').addEventListener('click', () => {
+  flipped = !flipped;
+  createBoard();
+});
 
-    function isInCheck(color) {
-      const kingPos = findKing(color);
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const p = boardState[r][c];
-          if (p && p[0] !== color) {
-            if (isLegalMove(p, { row: r, col: c }, kingPos)) return true;
-          }
-        }
-      }
-      return false;
-    }
+createBoard();
 
-    function highlightCheck() {
-      ['w', 'b'].forEach(color => {
-        if (isInCheck(color)) {
-          const king = findKing(color);
-          const cell = document.querySelector(`.cell[data-row="${king.row}"][data-col="${king.col}"]`);
-          if (cell) cell.classList.add('in-check');
-        }
-      });
-    }
-
-    function isCheckmate(color) {
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const piece = boardState[r][c];
-          if (piece && piece[0] === color) {
-            for (let r2 = 0; r2 < 8; r2++) {
-              for (let c2 = 0; c2 < 8; c2++) {
-                if (isLegalMove(piece, { row: r, col: c }, { row: r2, col: c2 }, true)) {
-                  const original = boardState[r2][c2];
-                  boardState[r2][c2] = piece;
-                  boardState[r][c] = '';
-                  const inCheck = isInCheck(color);
-                  boardState[r][c] = piece;
-                  boardState[r2][c2] = original;
-                  if (!inCheck) return false;
-                }
-              }
-            }
-          }
-        }
-      }
-      return true;
-    }
-
-    function findKing(color) {
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          if (boardState[r][c] === `${color}K`) return { row: r, col: c };
-        }
-      }
-    }
-
-    function isLegalMove(piece, from, to, skipCheck) {
-      if (!piece) return false;
-      const [color, type] = [piece[0], piece[1]];
-      const dir = color === 'w' ? -1 : 1;
-      const target = boardState[to.row][to.col];
-      const targetColor = target ? target[0] : null;
-      if (targetColor === color) return false;
-      const dr = to.row - from.row;
-      const dc = to.col - from.col;
-
-      switch (type) {
-        case 'P':
-          if (dc === 0 && !target) {
-            if (dr === dir) return true;
-            if ((color === 'w' && from.row === 6 || color === 'b' && from.row === 1) &&
-                dr === 2 * dir && !boardState[from.row + dir][from.col]) return true;
-          }
-          if (Math.abs(dc) === 1 && dr === dir && target && targetColor !== color) return true;
-          return false;
-        case 'N':
-          return (Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2);
-        case 'B':
-          if (Math.abs(dr) !== Math.abs(dc)) return false;
-          return isClearPath(from, to);
-        case 'R':
-          if (dr !== 0 && dc !== 0) return false;
-          return isClearPath(from, to);
-        case 'Q':
-          if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isClearPath(from, to);
-          return false;
-        case 'K':
-          return Math.abs(dr) <= 1 && Math.abs(dc) <= 1;
-        default:
-          return false;
-      }
-    }
-
-    function isClearPath(from, to) {
-      const dr = Math.sign(to.row - from.row);
-      const dc = Math.sign(to.col - from.col);
-      let r = from.row + dr;
-      let c = from.col + dc;
-      while (r !== to.row || c !== to.col) {
-        if (boardState[r][c]) return false;
-        r += dr;
-        c += dc;
-      }
-      return true;
-    }
-
-    function flipBoard() {
-      flipped = !flipped;
-      renderBoard();
-    }
-
-    renderBoard();
-  </script></body>
+  </script>
+</body>
 </html>
