@@ -1,124 +1,476 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Chess Game vs Bot</title>
-  <link rel="stylesheet" href="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chess Board – Chess Tackler</title>
   <style>
-    #board {
-      width: 400px;
-      margin: 20px auto;
-    }
-    #status, #history {
-      text-align: center;
-      margin-top: 10px;
+    body {
       font-family: Arial, sans-serif;
+      background-color: #fff;
+      color: #333;
+      margin: 0;
+      padding: 0;
     }
-    #controls {
-      text-align: center;
-      margin-top: 15px;
+
+    .header {
+      background-color: #f8f8f8;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
     }
-    button {
-      padding: 8px 16px;
-      font-size: 1em;
-      margin: 5px;
+
+    .header img {
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin: 0;
+      flex-grow: 1;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 20px;
+    }
+
+    .board {
+      width: 320px;
+      height: 320px;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      border: 2px solid #333;
+    }
+
+    .square {
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .light {
+      background-color: #f0d9b5;
+    }
+
+    .dark {
+      background-color: #b58863;
+    }
+
+    .controls {
+      margin-left: 20px;
+      flex-grow: 1;
+      min-width: 200px;
+    }
+
+    .nav-buttons button {
+      padding: 10px 15px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .history {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow-x: auto;
+      background-color: #f9f9f9;
+      font-family: monospace;
+    }
+
+    .ai-strategy {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background-color: #eef;
+    }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+      background-color: #121212;
+      color: #f5f5f5;
+    }
+
+    body.dark-mode .header {
+      background-color: #222;
+      color: white;
+    }
+
+    body.dark-mode .history {
+      background-color: #333;
+      border-color: #555;
+      color: white;
+    }
+
+    body.dark-mode .ai-strategy {
+      background-color: #263238;
+      border-color: #546e7a;
+      color: white;
+    }
+
+    body.dark-mode .board .light {
+      background-color: #a17961;
+    }
+
+    body.dark-mode .board .dark {
+      background-color: #5c4634;
+    }
+
+    body.dark-mode .nav-buttons button {
+      color: white;
+    }
+
+    #themeToggle {
+      width: 24px;
+      height: 24px;
+      margin-left: auto;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
+  <div class="header">
+    <img src="CT logo.png" alt="CT Logo" />
+    <h1>Chess Board – Chess Tackler</h1>
+    <img id="themeToggle" src="sun.png" alt="Toggle Theme" title="Toggle Light/Dark Mode" />
+  </div>
 
-<div id="board"></div>
-<div id="status"></div>
-<div id="controls">
-  <button onclick="undoMove()">Undo</button>
-</div>
-<div id="history"><strong>Move History:</strong> <span id="moveHistory"></span></div>
+  <div class="container">
+    <div class="board" id="chessBoard"></div>
+    <div class="controls">
+      <div class="nav-buttons">
+        <button>Previous</button>
+        <button>Next</button>
+      </div>
+      <div class="history" id="moveHistory">
+        <!-- Example moves -->
+        1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7
+      </div>
+      <div class="ai-strategy">
+        <strong>AI Strategy:</strong> Control the center, develop pieces, and castle early.
+      </div>
+    </div>
+  </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
-<script src="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
-<script>
-  const game = new Chess();
-  let board = null;
+  <script>
+    // Theme toggle
+    document.getElementById("themeToggle").addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+    });
+    const board = document.getElementById("chessBoard");
+    const moveHistory = document.getElementById("moveHistory");
+    const checkmateMessage = document.getElementById("checkmateMessage");
 
-  function updateStatus () {
-    const moveColor = game.turn() === 'w' ? 'White' : 'Black';
-    let status = '';
+    let boardState = [];
+    let selected = null;
+    let moveHistoryList = [];
+    let currentTurn = 'w';
+    let gameOver = false;
+    let castlingRights = {
+      w: { K: true, Q: true },
+      b: { K: true, Q: true }
+    };
 
-    if (game.in_checkmate()) {
-      status = `Game over. ${moveColor} is in checkmate.`;
-    } else if (game.in_draw()) {
-      status = 'Game over. Draw.';
-    } else {
-      status = `${moveColor} to move.`;
-      if (game.in_check()) {
-        status += ` ${moveColor} is in check.`;
+    let boardSnapshots = [];
+    let currentMoveIndex = -1;
+
+    function initializeBoard() {
+      const initial = [
+        ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+        Array(8).fill("bP"),
+        ...Array(4).fill(Array(8).fill(null)),
+        Array(8).fill("wP"),
+        ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
+      ];
+      boardState = JSON.parse(JSON.stringify(initial));
+      boardSnapshots.push(JSON.parse(JSON.stringify(boardState)));
+      currentMoveIndex = 0;
+    }
+
+    function renderBoard() {
+      board.innerHTML = "";
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const square = document.createElement("div");
+          square.className = `square ${(row + col) % 2 === 0 ? "light" : "dark"}`;
+          square.dataset.row = row;
+          square.dataset.col = col;
+
+          const piece = boardState[row][col];
+          if (piece) {
+            const img = document.createElement("img");
+            img.src = `${piece}.png`;
+            img.className = "piece";
+            img.draggable = false;
+            square.appendChild(img);
+          }
+
+          square.addEventListener("click", () => onSquareClick(row, col));
+          board.appendChild(square);
+        }
       }
     }
 
-    document.getElementById('status').textContent = status;
+    function onSquareClick(row, col) {
+      if (gameOver) return;
+      const clickedPiece = boardState[row][col];
+      if (selected) {
+        const [fromRow, fromCol] = selected;
+        const piece = boardState[fromRow][fromCol];
 
-    // Update move history
-    const history = game.history();
-    document.getElementById('moveHistory').textContent = history.join(' ');
-  }
+        if (piece && piece[0] === currentTurn && isLegalMove(piece, fromRow, fromCol, row, col)) {
+          movePiece(fromRow, fromCol, row, col);
+          selected = null;
+          currentTurn = currentTurn === 'w' ? 'b' : 'w';
 
-  function makeBotMove() {
-    // Use stockfish via worker
-    const stockfish = new Worker("https://cdn.jsdelivr.net/gh/niklasf/stockfish.js/stockfish.js");
-
-    stockfish.postMessage("uci");
-    stockfish.postMessage("position fen " + game.fen());
-    stockfish.postMessage("go depth 15");
-
-    stockfish.onmessage = function(event) {
-      if (event.data.startsWith("bestmove")) {
-        const move = event.data.split(" ")[1];
-        if (move && move !== '(none)') {
-          game.move({ from: move.substring(0, 2), to: move.substring(2, 4), promotion: 'q' });
-          board.position(game.fen());
-          updateStatus();
+          if (isCheckmate(currentTurn)) {
+            checkmateMessage.textContent = `Checkmate! Player ${currentTurn === 'w' ? 'Black' : 'White'} wins.`;
+            gameOver = true;
+            setTimeout(() => {
+              alert(`Checkmate!`);
+            }, 100);
+            document.getElementById("checkmateAudio").play();
+          }
+        } else {
+          selected = null;
         }
-        stockfish.terminate();
+        renderBoard();
+      } else if (clickedPiece && clickedPiece[0] === currentTurn) {
+        selected = [row, col];
+        highlightMoves(row, col);
       }
-    };
-  }
+    }
 
-  function onDragStart (source, piece, position, orientation) {
-    if (game.game_over()) return false;
-    if (game.turn() === 'b' || piece.startsWith('b')) return false;
-  }
+    function isKingInCheck(color) {
+      let kingRow = -1, kingCol = -1;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (boardState[r][c] === color + 'K') {
+            kingRow = r;
+            kingCol = c;
+          }
+        }
+      }
+      const opponent = color === 'w' ? 'b' : 'w';
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = boardState[r][c];
+          if (piece && piece[0] === opponent && isLegalMove(piece, r, c, kingRow, kingCol)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
 
-  function onDrop (source, target) {
-    const move = game.move({
-      from: source,
-      to: target,
-      promotion: 'q'
+    function isCheckmate(color) {
+      if (!isKingInCheck(color)) return false;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = boardState[r][c];
+          if (piece && piece[0] === color) {
+            for (let tr = 0; tr < 8; tr++) {
+              for (let tc = 0; tc < 8; tc++) {
+                const original = boardState[tr][tc];
+                const fr = boardState[r][c];
+                if (isLegalMove(piece, r, c, tr, tc)) {
+                  boardState[tr][tc] = piece;
+                  boardState[r][c] = null;
+                  const stillInCheck = isKingInCheck(color);
+                  boardState[r][c] = fr;
+                  boardState[tr][tc] = original;
+                  if (!stillInCheck) return false;
+                }
+              }
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    function movePiece(fromRow, fromCol, toRow, toCol) {
+      const piece = boardState[fromRow][fromCol];
+      if (piece[1] === 'K' && Math.abs(toCol - fromCol) === 2) {
+        const isKingside = toCol === 6;
+        const rookFrom = isKingside ? 7 : 0;
+        const rookTo = isKingside ? 5 : 3;
+        boardState[toRow][rookTo] = boardState[toRow][rookFrom];
+        boardState[toRow][rookFrom] = null;
+      }
+      boardState[toRow][toCol] = piece;
+      boardState[fromRow][fromCol] = null;
+
+      if (piece[1] === 'K') castlingRights[piece[0]] = { K: false, Q: false };
+      if (piece[1] === 'R') {
+        if (fromCol === 0) castlingRights[piece[0]].Q = false;
+        if (fromCol === 7) castlingRights[piece[0]].K = false;
+      }
+
+      addToHistory(piece, fromRow, fromCol, toRow, toCol);
+
+      boardSnapshots = boardSnapshots.slice(0, currentMoveIndex + 1);
+      boardSnapshots.push(JSON.parse(JSON.stringify(boardState)));
+      currentMoveIndex++;
+    }
+
+    function highlightMoves(row, col) {
+      renderBoard();
+      const squares = document.querySelectorAll('.square');
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (isLegalMove(boardState[row][col], row, col, r, c)) {
+            const idx = r * 8 + c;
+            squares[idx].classList.add('highlight');
+          }
+        }
+      }
+    }
+
+    function isLegalMove(piece, fromRow, fromCol, toRow, toCol) {
+      if (!piece) return false;
+      const target = boardState[toRow][toCol];
+      if (target && target[0] === piece[0]) return false;
+      const dr = toRow - fromRow;
+      const dc = toCol - fromCol;
+      switch (piece[1]) {
+        case 'P':
+          const dir = piece[0] === 'w' ? -1 : 1;
+          const startRow = piece[0] === 'w' ? 6 : 1;
+          if (dc === 0 && !target) {
+            if (dr === dir || (dr === 2 * dir && fromRow === startRow && !boardState[fromRow + dir][fromCol])) return true;
+          } else if (Math.abs(dc) === 1 && dr === dir && target && target[0] !== piece[0]) return true;
+          break;
+        case 'R':
+          if (dr === 0 || dc === 0) return isPathClear(fromRow, fromCol, toRow, toCol);
+          break;
+        case 'N':
+          if ((Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2)) return true;
+          break;
+        case 'B':
+          if (Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
+          break;
+        case 'Q':
+          if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
+          break;
+        case 'K':
+          if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) {
+            const tempTarget = boardState[toRow][toCol];
+            boardState[toRow][toCol] = piece;
+            boardState[fromRow][fromCol] = null;
+            const inCheck = isKingInCheck(piece[0]);
+            boardState[fromRow][fromCol] = piece;
+            boardState[toRow][toCol] = tempTarget;
+            return !inCheck;
+          }
+          if (fromRow === toRow && Math.abs(dc) === 2) {
+            const side = dc > 0 ? 'K' : 'Q';
+            const rookCol = side === 'K' ? 7 : 0;
+            const rook = boardState[fromRow][rookCol];
+            if (castlingRights[piece[0]][side] && rook === piece[0] + 'R' && isPathClear(fromRow, fromCol, toRow, toCol)) return true;
+          }
+          break;
+      }
+      return false;
+    }
+
+    function isPathClear(fromRow, fromCol, toRow, toCol) {
+      const dr = Math.sign(toRow - fromRow);
+      const dc = Math.sign(toCol - fromCol);
+      let r = fromRow + dr;
+      let c = fromCol + dc;
+      while (r !== toRow || c !== toCol) {
+        if (boardState[r][c]) return false;
+        r += dr;
+        c += dc;
+      }
+      return true;
+    }
+
+    function addToHistory(piece, fromRow, fromCol, toRow, toCol) {
+      const move = `${piece} ${String.fromCharCode(97 + fromCol)}${8 - fromRow}→${String.fromCharCode(97 + toCol)}${8 - toRow}`;
+      moveHistoryList.push(move);
+      moveHistory.textContent = moveHistoryList.join(", ");
+    }
+
+    document.getElementById("prevBtn").addEventListener("click", () => {
+      if (currentMoveIndex > 0) {
+        currentMoveIndex--;
+        boardState = JSON.parse(JSON.stringify(boardSnapshots[currentMoveIndex]));
+        renderBoard();
+      }
     });
 
-    if (move === null) return 'snapback';
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (currentMoveIndex < boardSnapshots.length - 1) {
+        currentMoveIndex++;
+        boardState = JSON.parse(JSON.stringify(boardSnapshots[currentMoveIndex]));
+        renderBoard();
+      }
+    });
 
-    updateStatus();
+    document.getElementById("aiBtn").addEventListener("click", () => {
+      const scoreTable = { P: 1, N: 3, B: 3, R: 5, Q: 9, K: 0 };
+      let whiteScore = 0, blackScore = 0;
+      let whiteCenterControl = 0, blackCenterControl = 0;
 
-    // Wait then make bot move
-    setTimeout(makeBotMove, 500);
-  }
+      const centerSquares = [[3, 3], [3, 4], [4, 3], [4, 4]];
 
-  function undoMove() {
-    game.undo();
-    game.undo(); // undo both human and bot move
-    board.position(game.fen());
-    updateStatus();
-  }
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = boardState[r][c];
+          if (piece) {
+            const color = piece[0];
+            const type = piece[1];
+            const score = scoreTable[type] || 0;
+            if (color === 'w') {
+              whiteScore += score;
+              centerSquares.forEach(([cr, cc]) => {
+                if (r === cr && c === cc) whiteCenterControl++;
+              });
+            } else {
+              blackScore += score;
+              centerSquares.forEach(([cr, cc]) => {
+                if (r === cr && c === cc) blackCenterControl++;
+              });
+            }
+          }
+        }
+      }
 
-  board = Chessboard('board', {
-    draggable: true,
-    position: 'start',
-    onDragStart: onDragStart,
-    onDrop: onDrop,
-    onSnapEnd: () => board.position(game.fen())
-  });
+      let advice = "";
+      const materialDiff = whiteScore - blackScore;
+      const centerDiff = whiteCenterControl - blackCenterControl;
 
-  updateStatus();
-</script>
+      if (currentTurn === 'w') {
+        advice += "<strong>White's Turn:</strong><br>";
+        advice += materialDiff >= 2 ? "You have a material advantage. Trade pieces to simplify the game.<br>" :
+                 materialDiff <= -2 ? "You're behind in material. Avoid trades and seek tactical shots.<br>" :
+                 "Material is even. Focus on activity and control.<br>";
+        advice += centerDiff > 0 ? "You control the center. Use that to launch attacks.<br>" :
+                 centerDiff < 0 ? "You lack central control. Try to occupy the center.<br>" :
+                 "Both players are contesting the center.<br>";
+      } else {
+        advice += "<strong>Black's Turn:</strong><br>";
+        advice += materialDiff <= -2 ? "You have a material advantage. Trade down and simplify.<br>" :
+                 materialDiff >= 2 ? "You're behind in material. Look for counterplay.<br>" :
+                 "Material is balanced. Stay alert and look for opportunities.<br>";
+        advice += centerDiff < 0 ? "You control the center. Keep your grip and expand.<br>" :
+                 centerDiff > 0 ? "You're behind in central control. Try to challenge it.<br>" :
+                 "The center is balanced. Watch for breaks.<br>";
+      }
 
+      document.getElementById("aiStrategy").innerHTML = advice;
+    });
+
+    initializeBoard();
+    renderBoard();
+  </script>
 </body>
 </html>
