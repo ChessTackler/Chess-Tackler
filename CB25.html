@@ -1,214 +1,172 @@
-
-
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Responsive Chessboard</title>
+  <title>Chess Game</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
-      background: #eee;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-    }
-    #board {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      width: 90vmin;
-      height: 90vmin;
-      max-width: 90vmin;
-      max-height: 90vmin;
-      border: 4px solid #333;
-      box-sizing: border-box;
-    }
-    .square {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      transition: background 0.2s ease;
-    }
-    .light {
-      background-color: #f0d9b5;
-    }
-    .dark {
-      background-color: #b58863;
-    }
-    .square img {
-      width: 85%;
-      height: 85%;
-      object-fit: contain;
-      position: absolute;
-      top: 7.5%;
-      left: 7.5%;
-      transition: all 0.3s ease;
-      pointer-events: none;
-    }
-    .highlight {
-      outline: 3px solid yellow;
-    }
-    #flipButton {
-      margin: 1rem;
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-    }
+      background: #f0f0f0;
+      margin: 0;
+      padding: 1rem;
+      font-family: sans-serif;
+    }#moveHistory {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: 90vmin;
+  height: 90vmin;
+  max-width: 90vmin;
+  max-height: 90vmin;
+  border: 2px solid #333;
+  position: relative;
+}
+
+.square {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.light { background-color: #f0d9b5; }
+.dark { background-color: #b58863; }
+
+.highlight {
+  background-color: rgba(255, 255, 0, 0.6);
+}
+
+.piece {
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
   </style>
 </head>
 <body>
-  <button id="flipButton">Flip Board</button>
-  <div id="board"></div>
-  <script>
+  <div id="moveHistory"></div>
+  <div id="board"></div>  <script>
     const board = document.getElementById('board');
-    let flipped = false;
+    const moveHistoryEl = document.getElementById('moveHistory');
+    let boardState = [];
     let selected = null;
-    let gameOver = false;const initialPosition = [
-  ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'],
-  ['bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP'],
-  ['', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', ''],
-  ['', '', '', '', '', '', '', ''],
-  ['wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP'],
-  ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR']
-];
+    let whiteTurn = true;
+    let moveHistory = [];
 
-let boardState = JSON.parse(JSON.stringify(initialPosition));
+    const initialPosition = [
+      ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'],
+      ['bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP'],
+      ['', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['', '', '', '', '', '', '', ''],
+      ['wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP'],
+      ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR']
+    ];
 
-function createBoard() {
-  board.innerHTML = '';
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const square = document.createElement('div');
-      const row = flipped ? 7 - r : r;
-      const col = flipped ? 7 - c : c;
-      square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
-      square.dataset.row = row;
-      square.dataset.col = col;
-
-      const piece = boardState[row][col];
-      if (piece) {
-        const img = document.createElement('img');
-        img.src = `${piece}.png`;
-        img.draggable = false;
-        square.appendChild(img);
+    function setupBoard() {
+      board.innerHTML = '';
+      boardState = JSON.parse(JSON.stringify(initialPosition));
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const square = document.createElement('div');
+          square.classList.add('square');
+          square.classList.add((row + col) % 2 === 0 ? 'light' : 'dark');
+          square.dataset.row = row;
+          square.dataset.col = col;
+          board.appendChild(square);
+        }
       }
-
-      square.addEventListener('click', () => handleClick(row, col));
-      board.appendChild(square);
+      renderPieces();
     }
-  }
-}
 
-function handleClick(row, col) {
-  if (gameOver) return;
-  const piece = boardState[row][col];
-
-  if (selected) {
-    if (isLegalMove(selected.row, selected.col, row, col)) {
-      boardState[row][col] = boardState[selected.row][selected.col];
-      boardState[selected.row][selected.col] = '';
-      selected = null;
-      checkGameStatus();
-    } else {
-      selected = piece ? { row, col } : null;
-    }
-  } else {
-    if (piece) selected = { row, col };
-  }
-  createBoard();
-  highlightLegalMoves();
-}
-
-function isLegalMove(fromRow, fromCol, toRow, toCol) {
-  const piece = boardState[fromRow][fromCol];
-  if (!piece) return false;
-  const color = piece[0];
-  const type = piece[1];
-  const dir = color === 'w' ? -1 : 1;
-  const dx = toCol - fromCol;
-  const dy = toRow - fromRow;
-  const target = boardState[toRow][toCol];
-
-  const sameColor = target && target[0] === color;
-  if (sameColor) return false;
-
-  switch (type) {
-    case 'P':
-      if (dx === 0 && !target) {
-        if (dy === dir) return true;
-        if ((color === 'w' && fromRow === 6 || color === 'b' && fromRow === 1) && dy === 2 * dir && boardState[fromRow + dir][fromCol] === '') return true;
-      } else if (Math.abs(dx) === 1 && dy === dir && target) return true;
-      break;
-    case 'N':
-      if ((Math.abs(dx) === 2 && Math.abs(dy) === 1) || (Math.abs(dx) === 1 && Math.abs(dy) === 2)) return true;
-      break;
-    case 'B':
-      if (Math.abs(dx) === Math.abs(dy)) return isPathClear(fromRow, fromCol, toRow, toCol);
-      break;
-    case 'R':
-      if (dx === 0 || dy === 0) return isPathClear(fromRow, fromCol, toRow, toCol);
-      break;
-    case 'Q':
-      if (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) return isPathClear(fromRow, fromCol, toRow, toCol);
-      break;
-    case 'K':
-      if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) return true;
-      break;
-  }
-  return false;
-}
-
-function isPathClear(fromRow, fromCol, toRow, toCol) {
-  const dRow = Math.sign(toRow - fromRow);
-  const dCol = Math.sign(toCol - fromCol);
-  let r = fromRow + dRow;
-  let c = fromCol + dCol;
-  while (r !== toRow || c !== toCol) {
-    if (boardState[r][c] !== '') return false;
-    r += dRow;
-    c += dCol;
-  }
-  return true;
-}
-
-function highlightLegalMoves() {
-  document.querySelectorAll('.square').forEach(sq => sq.classList.remove('highlight'));
-  if (!selected) return;
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      if (isLegalMove(selected.row, selected.col, r, c)) {
-        const s = document.querySelector(`.square[data-row='${r}'][data-col='${c}']`);
-        if (s) s.classList.add('highlight');
+    function renderPieces() {
+      document.querySelectorAll('.square').forEach(square => square.innerHTML = '');
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const piece = boardState[row][col];
+          if (piece) {
+            const img = document.createElement('img');
+            img.src = `${piece}.png`;
+            img.classList.add('piece');
+            const square = document.querySelector(`.square[data-row='${row}'][data-col='${col}']`);
+            square.appendChild(img);
+          }
+        }
       }
     }
-  }
-}
 
-function checkGameStatus() {
-  let wK = false, bK = false;
-  for (let row of boardState) {
-    for (let cell of row) {
-      if (cell === 'wK') wK = true;
-      if (cell === 'bK') bK = true;
+    function isOpponent(piece1, piece2) {
+      return piece1 && piece2 && piece1[0] !== piece2[0];
     }
-  }
-  if (!wK || !bK) {
-    alert(!wK ? 'Black wins!' : 'White wins!');
-    gameOver = true;
-  }
-}
 
-document.getElementById('flipButton').addEventListener('click', () => {
-  flipped = !flipped;
-  createBoard();
-});
+    function algebraic(row, col) {
+      return String.fromCharCode(97 + col) + (8 - row);
+    }
 
-createBoard();
+    function recordMove(fromRow, fromCol, toRow, toCol) {
+      const move = `${algebraic(fromRow, fromCol)}${algebraic(toRow, toCol)}`;
+      const turn = Math.floor(moveHistory.length / 2) + 1;
+      if (whiteTurn) {
+        moveHistory.push(`${turn}. ${move}`);
+      } else {
+        moveHistory[moveHistory.length - 1] += ` ${move}`;
+      }
+      moveHistoryEl.textContent = moveHistory.join(' ');
+      moveHistoryEl.scrollLeft = moveHistoryEl.scrollWidth;
+    }
 
-  </script>
-</body>
+    function handleClick(e) {
+      const row = parseInt(e.currentTarget.dataset.row);
+      const col = parseInt(e.currentTarget.dataset.col);
+      const clickedPiece = boardState[row][col];
+
+      if (selected) {
+        const [fromRow, fromCol] = selected;
+        if ((row !== fromRow || col !== fromCol)) {
+          const legal = true; // Add real logic later
+          if (legal) {
+            recordMove(fromRow, fromCol, row, col);
+            boardState[row][col] = boardState[fromRow][fromCol];
+            boardState[fromRow][fromCol] = '';
+            selected = null;
+            whiteTurn = !whiteTurn;
+            renderPieces();
+            return;
+          }
+        }
+        selected = null;
+        renderPieces();
+      } else if (clickedPiece && ((whiteTurn && clickedPiece[0] === 'w') || (!whiteTurn && clickedPiece[0] === 'b'))) {
+        selected = [row, col];
+      }
+    }
+
+    function addClickHandlers() {
+      document.querySelectorAll('.square').forEach(square => {
+        square.addEventListener('click', handleClick);
+      });
+    }
+
+    setupBoard();
+    addClickHandlers();
+  </script></body>
 </html>
