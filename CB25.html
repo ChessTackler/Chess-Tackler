@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Responsive Chess Game</title>
+  <title>Fixed Chess Board - 40px</title>
   <style>
     body {
       display: flex;
@@ -27,14 +27,14 @@
     }
     .board {
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      grid-template-rows: repeat(8, 1fr);
-      width: min(90vmin, 100%);
-      aspect-ratio: 1 / 1;
+      grid-template-columns: repeat(8, 40px);
+      grid-template-rows: repeat(8, 40px);
       border: 2px solid #333;
       margin: 10px 0;
     }
     .square {
+      width: 40px;
+      height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -46,7 +46,7 @@
       background-color: #b58863;
     }
     .highlight {
-      outline: 3px solid yellow;
+      outline: 2px solid yellow;
     }
     .piece {
       max-width: 90%;
