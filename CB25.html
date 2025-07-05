@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -14,15 +13,12 @@
       font-family: Arial, sans-serif;
       background-color: #f9f9f9;
     }
-
-    /* Header styling */
     .header {
       display: flex;
       align-items: center;
       padding: 10px 20px;
       width: 100%;
       max-width: 600px;
-      box-sizing: border-box;
       background-color: #333;
       color: white;
     }
@@ -35,7 +31,6 @@
       font-size: 20px;
       margin: 0;
     }
-
     .history {
       width: 95%;
       max-width: 400px;
@@ -47,7 +42,6 @@
       font-size: 14px;
       text-align: center;
     }
-
     .board {
       display: grid;
       grid-template-columns: repeat(8, 40px);
@@ -55,7 +49,6 @@
       border: 2px solid #333;
       margin: 10px 0;
     }
-
     .square {
       width: 40px;
       height: 40px;
@@ -63,46 +56,39 @@
       align-items: center;
       justify-content: center;
     }
-
-    .light {
-      background-color: #f0d9b5;
-    }
-
-    .dark {
-      background-color: #b58863;
-    }
-
-    .highlight {
-      outline: 2px solid yellow;
-    }
-
+    .light { background-color: #f0d9b5; }
+    .dark { background-color: #b58863; }
+    .highlight { outline: 2px solid yellow; }
     .piece {
       max-width: 90%;
       max-height: 90%;
       cursor: pointer;
       user-select: none;
     }
+    .checkmate-message {
+      font-size: 18px;
+      font-weight: bold;
+      color: red;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-
-  <!-- Header with logo and title -->
   <div class="header">
     <img src="CT logo.png" alt="CT Logo" />
     <h1>Chess Board – Chess Tackler</h1>
-  </div>
-
-  <div class="history" id="moveHistory"></div>
+  </div>  <div class="history" id="moveHistory"></div>
   <div class="board" id="chessBoard"></div>
-
-<script>
+  <div class="checkmate-message" id="checkmateMessage"></div><script>
 const board = document.getElementById("chessBoard");
 const moveHistory = document.getElementById("moveHistory");
+const checkmateMessage = document.getElementById("checkmateMessage");
 
 let boardState = [];
 let selected = null;
 let moveHistoryList = [];
 let currentTurn = 'w';
+let gameOver = false;
 let castlingRights = {
   w: { K: true, Q: true },
   b: { K: true, Q: true }
@@ -144,8 +130,8 @@ function renderBoard() {
 }
 
 function onSquareClick(row, col) {
+  if (gameOver) return;
   const clickedPiece = boardState[row][col];
-
   if (selected) {
     const [fromRow, fromCol] = selected;
     const piece = boardState[fromRow][fromCol];
@@ -154,6 +140,11 @@ function onSquareClick(row, col) {
       movePiece(fromRow, fromCol, row, col);
       selected = null;
       currentTurn = currentTurn === 'w' ? 'b' : 'w';
+
+      if (isCheckmate(currentTurn)) {
+        checkmateMessage.textContent = `Checkmate! Player ${currentTurn === 'w' ? 'Black' : 'White'} wins.`;
+        gameOver = true;
+      }
     } else {
       selected = null;
     }
@@ -164,10 +155,24 @@ function onSquareClick(row, col) {
   }
 }
 
+function isCheckmate(color) {
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const piece = boardState[r][c];
+      if (piece && piece[0] === color) {
+        for (let tr = 0; tr < 8; tr++) {
+          for (let tc = 0; tc < 8; tc++) {
+            if (isLegalMove(piece, r, c, tr, tc)) return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+
 function movePiece(fromRow, fromCol, toRow, toCol) {
   const piece = boardState[fromRow][fromCol];
-
-  // Castling logic
   if (piece[1] === 'K' && Math.abs(toCol - fromCol) === 2) {
     const isKingside = toCol === 6;
     const rookFrom = isKingside ? 7 : 0;
@@ -175,11 +180,9 @@ function movePiece(fromRow, fromCol, toRow, toCol) {
     boardState[toRow][rookTo] = boardState[toRow][rookFrom];
     boardState[toRow][rookFrom] = null;
   }
-
   boardState[toRow][toCol] = piece;
   boardState[fromRow][fromCol] = null;
 
-  // Update castling rights
   if (piece[1] === 'K') castlingRights[piece[0]] = { K: false, Q: false };
   if (piece[1] === 'R') {
     if (fromCol === 0) castlingRights[piece[0]].Q = false;
@@ -206,10 +209,8 @@ function isLegalMove(piece, fromRow, fromCol, toRow, toCol) {
   if (!piece) return false;
   const target = boardState[toRow][toCol];
   if (target && target[0] === piece[0]) return false;
-
   const dr = toRow - fromRow;
   const dc = toCol - fromCol;
-
   switch (piece[1]) {
     case 'P':
       const dir = piece[0] === 'w' ? -1 : 1;
@@ -236,11 +237,7 @@ function isLegalMove(piece, fromRow, fromCol, toRow, toCol) {
         const side = dc > 0 ? 'K' : 'Q';
         const rookCol = side === 'K' ? 7 : 0;
         const rook = boardState[fromRow][rookCol];
-        if (
-          castlingRights[piece[0]][side] &&
-          rook === piece[0] + 'R' &&
-          isPathClear(fromRow, fromCol, toRow, toCol)
-        ) return true;
+        if (castlingRights[piece[0]][side] && rook === piece[0] + 'R' && isPathClear(fromRow, fromCol, toRow, toCol)) return true;
       }
       break;
   }
@@ -268,6 +265,5 @@ function addToHistory(piece, fromRow, fromCol, toRow, toCol) {
 
 initializeBoard();
 renderBoard();
-</script>
-</body>
+</script></body>
 </html>
