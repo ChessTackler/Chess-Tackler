@@ -2,15 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chessboard</title>
+  <title>Chess Board</title>
   <style>
     body {
+      background-color: #333;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #333;
     }
 
     #board {
@@ -27,21 +26,19 @@
       justify-content: center;
       align-items: center;
       font-size: 24px;
-      position: relative;
     }
 
     .white { background-color: #f0d9b5; }
     .black { background-color: #b58863; }
 
-    .cell.highlight {
-      background-color: #a9a9a9 !important;
+    .highlight {
+      background-color: yellow !important;
     }
 
     .piece {
       width: 70px;
       height: 70px;
-      cursor: pointer;
-      user-select: none;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -51,54 +48,135 @@
   <script>
     const board = document.getElementById('board');
 
-    const initialPosition = {
-      'a8': 'bR', 'b8': 'bN', 'c8': 'bB', 'd8': 'bQ', 'e8': 'bK', 'f8': 'bB', 'g8': 'bN', 'h8': 'bR',
-      'a7': 'bP', 'b7': 'bP', 'c7': 'bP', 'd7': 'bP', 'e7': 'bP', 'f7': 'bP', 'g7': 'bP', 'h7': 'bP',
-      'a2': 'wP', 'b2': 'wP', 'c2': 'wP', 'd2': 'wP', 'e2': 'wP', 'f2': 'wP', 'g2': 'wP', 'h2': 'wP',
-      'a1': 'wR', 'b1': 'wN', 'c1': 'wB', 'd1': 'wQ', 'e1': 'wK', 'f1': 'wB', 'g1': 'wN', 'h1': 'wR',
+    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    const ranks = [8, 7, 6, 5, 4, 3, 2, 1];
+
+    const startPosition = {
+      a8: 'bR', b8: 'bN', c8: 'bB', d8: 'bQ', e8: 'bK', f8: 'bB', g8: 'bN', h8: 'bR',
+      a7: 'bP', b7: 'bP', c7: 'bP', d7: 'bP', e7: 'bP', f7: 'bP', g7: 'bP', h7: 'bP',
+      a2: 'wP', b2: 'wP', c2: 'wP', d2: 'wP', e2: 'wP', f2: 'wP', g2: 'wP', h2: 'wP',
+      a1: 'wR', b1: 'wN', c1: 'wB', d1: 'wQ', e1: 'wK', f1: 'wB', g1: 'wN', h1: 'wR',
     };
 
-    const files = ['a','b','c','d','e','f','g','h'];
-    const ranks = ['8','7','6','5','4','3','2','1'];
-
     const state = {}; // board state
-
-    let selected = null;
+    let selectedSquare = null;
 
     function createBoard() {
       for (let r = 0; r < 8; r++) {
         for (let f = 0; f < 8; f++) {
-          const square = files[f] + ranks[r];
+          const squareId = files[f] + ranks[r];
           const cell = document.createElement('div');
-          cell.classList.add('cell', (r + f) % 2 === 0 ? 'white' : 'black');
-          cell.id = square;
+          cell.classList.add('cell');
+          cell.classList.add((r + f) % 2 === 0 ? 'white' : 'black');
+          cell.id = squareId;
 
-          if (initialPosition[square]) {
+          const pieceCode = startPosition[squareId];
+          if (pieceCode) {
             const img = document.createElement('img');
-            img.src = `${initialPosition[square]}.png`;
+            img.src = `${pieceCode}.png`;
             img.classList.add('piece');
-            img.dataset.piece = initialPosition[square];
-            img.dataset.position = square;
+            img.dataset.piece = pieceCode;
             cell.appendChild(img);
-            state[square] = initialPosition[square];
+            state[squareId] = pieceCode;
           } else {
-            state[square] = null;
+            state[squareId] = null;
           }
 
-          cell.addEventListener('click', () => onSquareClick(square));
+          cell.addEventListener('click', () => handleClick(squareId));
           board.appendChild(cell);
         }
       }
     }
 
-    function onSquareClick(square) {
+    function handleClick(square) {
       clearHighlights();
 
       const piece = state[square];
 
-      if (selected && selected !== square && isLegalMove(selected, square)) {
-        movePiece(selected, square);
-        selected = null;
+      if (selectedSquare && square !== selectedSquare && isLegalMove(selectedSquare, square)) {
+        movePiece(selectedSquare, square);
+        selectedSquare = null;
       } else if (piece) {
-        selected = square;
-        highlightLegalMoves(square);
+        selectedSquare = square;
+        highlightMoves(square);
+      } else {
+        selectedSquare = null;
+      }
+    }
+
+    function movePiece(from, to) {
+      const fromCell = document.getElementById(from);
+      const toCell = document.getElementById(to);
+      const movingPiece = fromCell.querySelector('img');
+
+      if (movingPiece) {
+        fromCell.removeChild(movingPiece);
+        toCell.innerHTML = '';
+        toCell.appendChild(movingPiece);
+        state[to] = state[from];
+        state[from] = null;
+      }
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll('.cell').forEach(cell => {
+        cell.classList.remove('highlight');
+      });
+    }
+
+    function highlightMoves(square) {
+      const legal = getLegalMoves(square);
+      legal.forEach(sq => {
+        const cell = document.getElementById(sq);
+        if (cell) cell.classList.add('highlight');
+      });
+    }
+
+    function isLegalMove(from, to) {
+      return getLegalMoves(from).includes(to);
+    }
+
+    function getLegalMoves(square) {
+      const piece = state[square];
+      if (!piece) return [];
+
+      const type = piece[1];
+      const color = piece[0];
+      const file = square[0];
+      const rank = parseInt(square[1]);
+      const fIdx = files.indexOf(file);
+      const moves = [];
+
+      if (type === 'P') {
+        const direction = color === 'w' ? 1 : -1;
+        const targetRank = rank + direction;
+        const targetSquare = file + targetRank;
+        if (state[targetSquare] === null) {
+          moves.push(targetSquare);
+        }
+      }
+
+      if (type === 'N') {
+        const deltas = [
+          [+1, +2], [+2, +1], [-1, +2], [-2, +1],
+          [+1, -2], [+2, -1], [-1, -2], [-2, -1]
+        ];
+        for (const [df, dr] of deltas) {
+          const nf = files[fIdx + df];
+          const nr = rank + dr;
+          if (nf && nr >= 1 && nr <= 8) {
+            const target = nf + nr;
+            if (!state[target] || state[target][0] !== color) {
+              moves.push(target);
+            }
+          }
+        }
+      }
+
+      return moves;
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>
