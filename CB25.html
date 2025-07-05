@@ -83,6 +83,7 @@
   <div class="history" id="moveHistory"></div>
   <div class="board" id="chessBoard"></div>
   <div class="checkmate-message" id="checkmateMessage"></div>
+  <audio id="checkmateAudio" src="correct.mp3" preload="auto"></audio>
 
   <script>
     const board = document.getElementById("chessBoard");
@@ -149,6 +150,14 @@
           if (isCheckmate(currentTurn)) {
             checkmateMessage.textContent = `Checkmate! Player ${currentTurn === 'w' ? 'Black' : 'White'} wins.`;
             gameOver = true;
+
+            // ✅ Show popup
+            setTimeout(() => {
+              alert(`Checkmate!\nPlayer ${currentTurn === 'w' ? 'Black' : 'White'} won't play further.`);
+            }, 100);
+
+            // ✅ Play mp3
+            document.getElementById("checkmateAudio").play();
           }
         } else {
           selected = null;
@@ -270,7 +279,15 @@
           if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
           break;
         case 'K':
-          if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) return true;
+          if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) {
+            const tempTarget = boardState[toRow][toCol];
+            boardState[toRow][toCol] = piece;
+            boardState[fromRow][fromCol] = null;
+            const inCheck = isKingInCheck(piece[0]);
+            boardState[fromRow][fromCol] = piece;
+            boardState[toRow][toCol] = tempTarget;
+            return !inCheck;
+          }
           if (fromRow === toRow && Math.abs(dc) === 2) {
             const side = dc > 0 ? 'K' : 'Q';
             const rookCol = side === 'K' ? 7 : 0;
