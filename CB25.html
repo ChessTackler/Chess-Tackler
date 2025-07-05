@@ -114,6 +114,9 @@
       b: { K: true, Q: true }
     };
 
+    let boardSnapshots = [];
+    let currentMoveIndex = -1;
+
     function initializeBoard() {
       const initial = [
         ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
@@ -123,6 +126,8 @@
         ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
       ];
       boardState = JSON.parse(JSON.stringify(initial));
+      boardSnapshots.push(JSON.parse(JSON.stringify(boardState)));
+      currentMoveIndex = 0;
     }
 
     function renderBoard() {
@@ -247,6 +252,10 @@
       }
 
       addToHistory(piece, fromRow, fromCol, toRow, toCol);
+
+      boardSnapshots = boardSnapshots.slice(0, currentMoveIndex + 1);
+      boardSnapshots.push(JSON.parse(JSON.stringify(boardState)));
+      currentMoveIndex++;
     }
 
     function highlightMoves(row, col) {
@@ -327,6 +336,23 @@
       moveHistoryList.push(move);
       moveHistory.textContent = moveHistoryList.join(", ");
     }
+
+    // Navigation buttons
+    document.getElementById("prevBtn").addEventListener("click", () => {
+      if (currentMoveIndex > 0) {
+        currentMoveIndex--;
+        boardState = JSON.parse(JSON.stringify(boardSnapshots[currentMoveIndex]));
+        renderBoard();
+      }
+    });
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      if (currentMoveIndex < boardSnapshots.length - 1) {
+        currentMoveIndex++;
+        boardState = JSON.parse(JSON.stringify(boardSnapshots[currentMoveIndex]));
+        renderBoard();
+      }
+    });
 
     initializeBoard();
     renderBoard();
