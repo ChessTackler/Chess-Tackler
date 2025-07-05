@@ -8,216 +8,222 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      background: #f0f0f0;
+      justify-content: flex-start;
       margin: 0;
-      padding: 1rem;
-      font-family: sans-serif;
-    }#moveHistory {
-  width: 100%;
-  max-width: 400px;
-  background: white;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  overflow-x: auto;
-  white-space: nowrap;
-  font-size: 0.9rem;
-}
-
-#board {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  width: 90vmin;
-  height: 90vmin;
-  max-width: 90vmin;
-  max-height: 90vmin;
-  border: 2px solid #333;
-  position: relative;
-}
-
-.square {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.light { background-color: #f0d9b5; }
-.dark { background-color: #b58863; }
-
-.highlight {
-  background-color: rgba(255, 255, 0, 0.6);
-}
-
-.piece {
-  width: 85%;
-  height: 85%;
-  object-fit: contain;
-  transition: transform 0.2s ease;
-}
-
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    .history {
+      width: 100%;
+      max-width: 400px;
+      margin: 10px auto;
+      padding: 5px;
+      background-color: #eee;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      width: 100vmin;
+      height: 100vmin;
+      max-width: 100vmin;
+      max-height: 100vmin;
+      border: 2px solid #333;
+    }
+    .square {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .light {
+      background-color: #f0d9b5;
+    }
+    .dark {
+      background-color: #b58863;
+    }
+    .highlight {
+      outline: 3px solid yellow;
+    }
+    .piece {
+      max-width: 90%;
+      max-height: 90%;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div id="moveHistory"></div>
-  <div id="board"></div>  <script>
-    const board = document.getElementById('board');
-    const moveHistoryEl = document.getElementById('moveHistory');
+  <div class="history" id="moveHistory"></div>
+  <div class="board" id="chessBoard"></div>  <script>
+    const board = document.getElementById("chessBoard");
+    const moveHistory = document.getElementById("moveHistory");
+
     let boardState = [];
     let selected = null;
-    let whiteTurn = true;
-    let moveHistory = [];
-
-    let hasMoved = {
-      wK: false,
-      wR1: false,
-      wR2: false,
-      bK: false,
-      bR1: false,
-      bR2: false
+    let moveHistoryList = [];
+    let currentTurn = 'w';
+    let castlingRights = {
+      w: { K: true, Q: true },
+      b: { K: true, Q: true }
     };
 
-    const initialPosition = [
-      ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'],
-      ['bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP'],
-      ['', '', '', '', '', '', '', ''],
-      ['', '', '', '', '', '', '', ''],
-      ['', '', '', '', '', '', '', ''],
-      ['', '', '', '', '', '', '', ''],
-      ['wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP'],
-      ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR']
-    ];
+    function initializeBoard() {
+      const initial = [
+        ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+        Array(8).fill("bP"),
+        ...Array(4).fill(Array(8).fill(null)),
+        Array(8).fill("wP"),
+        ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
+      ];
+      boardState = initial;
+    }
 
-    function setupBoard() {
-      board.innerHTML = '';
-      boardState = JSON.parse(JSON.stringify(initialPosition));
+    function renderBoard() {
+      board.innerHTML = "";
       for (let row = 0; row < 8; row++) {
         for (let col = 0; col < 8; col++) {
-          const square = document.createElement('div');
-          square.classList.add('square');
-          square.classList.add((row + col) % 2 === 0 ? 'light' : 'dark');
+          const square = document.createElement("div");
+          square.className = `square ${(row + col) % 2 === 0 ? "light" : "dark"}`;
           square.dataset.row = row;
           square.dataset.col = col;
+
+          const piece = boardState[row][col];
+          if (piece) {
+            const img = document.createElement("img");
+            img.src = `${piece}.png`;
+            img.className = "piece";
+            img.draggable = false;
+            square.appendChild(img);
+          }
+
+          square.addEventListener("click", () => onSquareClick(row, col));
           board.appendChild(square);
         }
       }
-      renderPieces();
     }
 
-    function renderPieces() {
-      document.querySelectorAll('.square').forEach(square => square.innerHTML = '');
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-          const piece = boardState[row][col];
-          if (piece) {
-            const img = document.createElement('img');
-            img.src = `${piece}.png`;
-            img.classList.add('piece');
-            const square = document.querySelector(`.square[data-row='${row}'][data-col='${col}']`);
-            square.appendChild(img);
-          }
-        }
-      }
-    }
-
-    function isOpponent(piece1, piece2) {
-      return piece1 && piece2 && piece1[0] !== piece2[0];
-    }
-
-    function algebraic(row, col) {
-      return String.fromCharCode(97 + col) + (8 - row);
-    }
-
-    function recordMove(fromRow, fromCol, toRow, toCol) {
-      const move = `${algebraic(fromRow, fromCol)}${algebraic(toRow, toCol)}`;
-      const turn = Math.floor(moveHistory.length / 2) + 1;
-      if (whiteTurn) {
-        moveHistory.push(`${turn}. ${move}`);
-      } else {
-        moveHistory[moveHistory.length - 1] += ` ${move}`;
-      }
-      moveHistoryEl.textContent = moveHistory.join(' ');
-      moveHistoryEl.scrollLeft = moveHistoryEl.scrollWidth;
-    }
-
-    function handleClick(e) {
-      const row = parseInt(e.currentTarget.dataset.row);
-      const col = parseInt(e.currentTarget.dataset.col);
+    function onSquareClick(row, col) {
       const clickedPiece = boardState[row][col];
 
       if (selected) {
         const [fromRow, fromCol] = selected;
-        const selectedPiece = boardState[fromRow][fromCol];
+        const piece = boardState[fromRow][fromCol];
 
-        // Handle castling
-        if (selectedPiece === (whiteTurn ? 'wK' : 'bK') && fromRow === row && Math.abs(col - fromCol) === 2) {
-          if (col > fromCol && !hasMoved[selectedPiece] && !hasMoved[whiteTurn ? 'wR2' : 'bR2']) {
-            // Kingside
-            boardState[row][4] = '';
-            boardState[row][6] = selectedPiece;
-            boardState[row][7] = '';
-            boardState[row][5] = whiteTurn ? 'wR' : 'bR';
-            hasMoved[selectedPiece] = true;
-            hasMoved[whiteTurn ? 'wR2' : 'bR2'] = true;
-            recordMove(fromRow, fromCol, row, col);
-            whiteTurn = !whiteTurn;
-            selected = null;
-            renderPieces();
-            return;
-          } else if (col < fromCol && !hasMoved[selectedPiece] && !hasMoved[whiteTurn ? 'wR1' : 'bR1']) {
-            // Queenside
-            boardState[row][4] = '';
-            boardState[row][2] = selectedPiece;
-            boardState[row][0] = '';
-            boardState[row][3] = whiteTurn ? 'wR' : 'bR';
-            hasMoved[selectedPiece] = true;
-            hasMoved[whiteTurn ? 'wR1' : 'bR1'] = true;
-            recordMove(fromRow, fromCol, row, col);
-            whiteTurn = !whiteTurn;
-            selected = null;
-            renderPieces();
-            return;
-          }
+        if (piece && piece[0] === currentTurn && isLegalMove(piece, fromRow, fromCol, row, col)) {
+          movePiece(fromRow, fromCol, row, col);
+          selected = null;
+          currentTurn = currentTurn === 'w' ? 'b' : 'w';
+        } else {
+          selected = null;
         }
-
-        if ((row !== fromRow || col !== fromCol)) {
-          const legal = true; // Improve this with proper logic
-          if (legal) {
-            boardState[row][col] = selectedPiece;
-            boardState[fromRow][fromCol] = '';
-
-            // Update hasMoved for castling tracking
-            if (selectedPiece === 'wK') hasMoved.wK = true;
-            if (selectedPiece === 'bK') hasMoved.bK = true;
-            if (selectedPiece === 'wR' && fromCol === 0 && fromRow === 7) hasMoved.wR1 = true;
-            if (selectedPiece === 'wR' && fromCol === 7 && fromRow === 7) hasMoved.wR2 = true;
-            if (selectedPiece === 'bR' && fromCol === 0 && fromRow === 0) hasMoved.bR1 = true;
-            if (selectedPiece === 'bR' && fromCol === 7 && fromRow === 0) hasMoved.bR2 = true;
-
-            recordMove(fromRow, fromCol, row, col);
-            selected = null;
-            whiteTurn = !whiteTurn;
-            renderPieces();
-            return;
-          }
-        }
-        selected = null;
-        renderPieces();
-      } else if (clickedPiece && ((whiteTurn && clickedPiece[0] === 'w') || (!whiteTurn && clickedPiece[0] === 'b'))) {
+        renderBoard();
+      } else if (clickedPiece && clickedPiece[0] === currentTurn) {
         selected = [row, col];
+        highlightMoves(row, col);
       }
     }
 
-    function addClickHandlers() {
-      document.querySelectorAll('.square').forEach(square => {
-        square.addEventListener('click', handleClick);
-      });
+    function movePiece(fromRow, fromCol, toRow, toCol) {
+      const piece = boardState[fromRow][fromCol];
+
+      // Castling logic
+      if (piece[1] === 'K' && Math.abs(toCol - fromCol) === 2) {
+        const rookFromCol = toCol === 6 ? 7 : 0;
+        const rookToCol = toCol === 6 ? 5 : 3;
+        boardState[toRow][rookToCol] = boardState[toRow][rookFromCol];
+        boardState[toRow][rookFromCol] = null;
+      }
+
+      boardState[toRow][toCol] = piece;
+      boardState[fromRow][fromCol] = null;
+
+      if (piece[1] === 'K') castlingRights[piece[0]] = { K: false, Q: false };
+      if (piece[1] === 'R') {
+        if (fromCol === 0) castlingRights[piece[0]].Q = false;
+        if (fromCol === 7) castlingRights[piece[0]].K = false;
+      }
+
+      addToHistory(piece, fromRow, fromCol, toRow, toCol);
     }
 
-    setupBoard();
-    addClickHandlers();
+    function highlightMoves(row, col) {
+      renderBoard();
+      const squares = document.querySelectorAll('.square');
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (isLegalMove(boardState[row][col], row, col, r, c)) {
+            const idx = r * 8 + c;
+            squares[idx].classList.add('highlight');
+          }
+        }
+      }
+    }
+
+    function isLegalMove(piece, fromRow, fromCol, toRow, toCol) {
+      if (!piece) return false;
+      const target = boardState[toRow][toCol];
+      if (target && target[0] === piece[0]) return false;
+
+      const dr = toRow - fromRow;
+      const dc = toCol - fromCol;
+
+      switch (piece[1]) {
+        case 'P':
+          const dir = piece[0] === 'w' ? -1 : 1;
+          const startRow = piece[0] === 'w' ? 6 : 1;
+          if (dc === 0 && !target) {
+            if (dr === dir || (dr === 2 * dir && fromRow === startRow && !boardState[fromRow + dir][fromCol])) return true;
+          } else if (Math.abs(dc) === 1 && dr === dir && target && target[0] !== piece[0]) return true;
+          break;
+        case 'R':
+          if (dr === 0 || dc === 0) return isPathClear(fromRow, fromCol, toRow, toCol);
+          break;
+        case 'N':
+          if ((Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2)) return true;
+          break;
+        case 'B':
+          if (Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
+          break;
+        case 'Q':
+          if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
+          break;
+        case 'K':
+          if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) return true;
+          if (fromRow === toRow && Math.abs(dc) === 2) {
+            const side = dc > 0 ? 'K' : 'Q';
+            if (castlingRights[piece[0]][side] && isPathClear(fromRow, fromCol, toRow, toCol)) return true;
+          }
+          break;
+      }
+      return false;
+    }
+
+    function isPathClear(fromRow, fromCol, toRow, toCol) {
+      const dr = Math.sign(toRow - fromRow);
+      const dc = Math.sign(toCol - fromCol);
+      let r = fromRow + dr;
+      let c = fromCol + dc;
+      while (r !== toRow || c !== toCol) {
+        if (boardState[r][c]) return false;
+        r += dr;
+        c += dc;
+      }
+      return true;
+    }
+
+    function addToHistory(piece, fromRow, fromCol, toRow, toCol) {
+      const move = `${piece} ${String.fromCharCode(97 + fromCol)}${8 - fromRow}→${String.fromCharCode(97 + toCol)}${8 - toRow}`;
+      moveHistoryList.push(move);
+      moveHistory.textContent = moveHistoryList.join(", ");
+    }
+
+    initializeBoard();
+    renderBoard();
   </script></body>
 </html>
