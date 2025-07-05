@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chess Game</title>
+  <title>Responsive Chess Game</title>
   <style>
     body {
       display: flex;
@@ -12,9 +12,10 @@
       margin: 0;
       padding: 0;
       font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
     }
     .history {
-      width: 100%;
+      width: 95%;
       max-width: 400px;
       margin: 10px auto;
       padding: 5px;
@@ -26,18 +27,17 @@
     }
     .board {
       display: grid;
-      grid-template-columns: repeat(8, 60px);
-      grid-template-rows: repeat(8, 60px);
+      grid-template-columns: repeat(8, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      width: min(90vmin, 100%);
+      aspect-ratio: 1 / 1;
       border: 2px solid #333;
-      margin-top: 10px;
+      margin: 10px 0;
     }
     .square {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 60px;
-      height: 60px;
-      position: relative;
     }
     .light {
       background-color: #f0d9b5;
@@ -52,6 +52,7 @@
       max-width: 90%;
       max-height: 90%;
       cursor: pointer;
+      user-select: none;
     }
   </style>
 </head>
@@ -143,6 +144,7 @@ function movePiece(fromRow, fromCol, toRow, toCol) {
   boardState[toRow][toCol] = piece;
   boardState[fromRow][fromCol] = null;
 
+  // Update castling rights
   if (piece[1] === 'K') castlingRights[piece[0]] = { K: false, Q: false };
   if (piece[1] === 'R') {
     if (fromCol === 0) castlingRights[piece[0]].Q = false;
@@ -195,7 +197,6 @@ function isLegalMove(piece, fromRow, fromCol, toRow, toCol) {
       break;
     case 'K':
       if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) return true;
-
       if (fromRow === toRow && Math.abs(dc) === 2) {
         const side = dc > 0 ? 'K' : 'Q';
         const rookCol = side === 'K' ? 7 : 0;
