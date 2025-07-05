@@ -1,29 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Responsive Fixed Chess Board</title>
+  <title>Chess with Check & Flip</title>
   <style>
     * {
       box-sizing: border-box;
     }
-
     body {
       margin: 0;
-      padding: 0;
       background: #1e1e1e;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       min-height: 100vh;
+      color: white;
     }
-
     .board-wrapper {
       width: min(90vmin, 100vw);
       aspect-ratio: 1 / 1;
+      position: relative;
     }
-
     .board {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
@@ -32,30 +30,26 @@
       height: 100%;
       border: 3px solid #000;
     }
-
     .cell {
       display: flex;
       justify-content: center;
       align-items: center;
     }
-
-    .white {
-      background-color: #f0d9b5;
-    }
-
-    .black {
-      background-color: #b58863;
-    }
-
-    .highlight {
-      background-color: yellow !important;
-    }
-
+    .white { background-color: #f0d9b5; }
+    .black { background-color: #b58863; }
+    .highlight { background-color: yellow !important; }
+    .in-check { background-color: red !important; }
     .cell img {
       max-width: 90%;
       max-height: 90%;
       object-fit: contain;
       pointer-events: none;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -63,12 +57,12 @@
   <div class="board-wrapper">
     <div class="board" id="board"></div>
   </div>
-
-  <script>
+  <button onclick="flipBoard()">Flip Board</button>  <script>
     const board = document.getElementById('board');
     let selectedCell = null;
     let selectedPiece = null;
     let turn = 'w';
+    let flipped = false;
 
     const boardState = [
       ['bR','bN','bB','bQ','bK','bB','bN','bR'],
@@ -83,8 +77,14 @@
 
     function renderBoard() {
       board.innerHTML = '';
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
+      const rows = [...Array(8).keys()];
+      const cols = [...Array(8).keys()];
+      if (flipped) {
+        rows.reverse();
+        cols.reverse();
+      }
+      for (let row of rows) {
+        for (let col of cols) {
           const cell = document.createElement('div');
           cell.className = `cell ${(row + col) % 2 === 0 ? 'white' : 'black'}`;
           cell.dataset.row = row;
@@ -93,7 +93,7 @@
           const piece = boardState[row][col];
           if (piece) {
             const img = document.createElement('img');
-            img.src = `${piece}.png`; // e.g. wP.png, bK.png
+            img.src = `${piece}.png`;
             cell.appendChild(img);
           }
 
@@ -101,6 +101,8 @@
           board.appendChild(cell);
         }
       }
+
+      highlightCheck();
     }
 
     function handleCellClick(row, col) {
@@ -116,9 +118,14 @@
         } else if (isLegalMove(selectedPiece, selectedCell, { row, col })) {
           boardState[row][col] = selectedPiece;
           boardState[selectedCell.row][selectedCell.col] = '';
-          turn = turn === 'w' ? 'b' : 'w';
           selectedCell = null;
           selectedPiece = null;
+          if (isCheckmate(turn === 'w' ? 'b' : 'w')) {
+            alert('Checkmate!');
+          } else if (isInCheck(turn === 'w' ? 'b' : 'w')) {
+            alert('Check!');
+          }
+          turn = turn === 'w' ? 'b' : 'w';
           renderBoard();
         } else if (isOwn) {
           selectedCell = { row, col };
@@ -136,9 +143,9 @@
     }
 
     function clearHighlights() {
-      document.querySelectorAll('.cell').forEach(cell =>
-        cell.classList.remove('highlight')
-      );
+      document.querySelectorAll('.cell').forEach(cell => {
+        cell.classList.remove('highlight', 'in-check');
+      });
     }
 
     function highlightMoves(piece, row, col) {
@@ -153,15 +160,68 @@
       }
     }
 
-    function isLegalMove(piece, from, to) {
+    function isInCheck(color) {
+      const kingPos = findKing(color);
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const p = boardState[r][c];
+          if (p && p[0] !== color) {
+            if (isLegalMove(p, { row: r, col: c }, kingPos)) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function highlightCheck() {
+      ['w', 'b'].forEach(color => {
+        if (isInCheck(color)) {
+          const king = findKing(color);
+          const cell = document.querySelector(`.cell[data-row="${king.row}"][data-col="${king.col}"]`);
+          if (cell) cell.classList.add('in-check');
+        }
+      });
+    }
+
+    function isCheckmate(color) {
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = boardState[r][c];
+          if (piece && piece[0] === color) {
+            for (let r2 = 0; r2 < 8; r2++) {
+              for (let c2 = 0; c2 < 8; c2++) {
+                if (isLegalMove(piece, { row: r, col: c }, { row: r2, col: c2 }, true)) {
+                  const original = boardState[r2][c2];
+                  boardState[r2][c2] = piece;
+                  boardState[r][c] = '';
+                  const inCheck = isInCheck(color);
+                  boardState[r][c] = piece;
+                  boardState[r2][c2] = original;
+                  if (!inCheck) return false;
+                }
+              }
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    function findKing(color) {
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (boardState[r][c] === `${color}K`) return { row: r, col: c };
+        }
+      }
+    }
+
+    function isLegalMove(piece, from, to, skipCheck) {
       if (!piece) return false;
       const [color, type] = [piece[0], piece[1]];
       const dir = color === 'w' ? -1 : 1;
       const target = boardState[to.row][to.col];
       const targetColor = target ? target[0] : null;
-
       if (targetColor === color) return false;
-
       const dr = to.row - from.row;
       const dc = to.col - from.col;
 
@@ -174,25 +234,19 @@
           }
           if (Math.abs(dc) === 1 && dr === dir && target && targetColor !== color) return true;
           return false;
-
         case 'N':
           return (Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2);
-
         case 'B':
           if (Math.abs(dr) !== Math.abs(dc)) return false;
           return isClearPath(from, to);
-
         case 'R':
           if (dr !== 0 && dc !== 0) return false;
           return isClearPath(from, to);
-
         case 'Q':
           if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isClearPath(from, to);
           return false;
-
         case 'K':
           return Math.abs(dr) <= 1 && Math.abs(dc) <= 1;
-
         default:
           return false;
       }
@@ -211,7 +265,11 @@
       return true;
     }
 
+    function flipBoard() {
+      flipped = !flipped;
+      renderBoard();
+    }
+
     renderBoard();
-  </script>
-</body>
+  </script></body>
 </html>
