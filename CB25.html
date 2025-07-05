@@ -72,6 +72,16 @@
       color: red;
       margin-top: 10px;
     }
+    .nav-buttons {
+      margin: 8px;
+    }
+    .nav-buttons button {
+      background-color: transparent;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      margin: 0 10px;
+    }
   </style>
 </head>
 <body>
@@ -82,6 +92,10 @@
 
   <div class="history" id="moveHistory"></div>
   <div class="board" id="chessBoard"></div>
+  <div class="nav-buttons">
+    <button id="prevBtn" title="Previous Move">◀</button>
+    <button id="nextBtn" title="Next Move">▶</button>
+  </div>
   <div class="checkmate-message" id="checkmateMessage"></div>
   <audio id="checkmateAudio" src="correct.mp3" preload="auto"></audio>
 
@@ -150,13 +164,9 @@
           if (isCheckmate(currentTurn)) {
             checkmateMessage.textContent = `Checkmate! Player ${currentTurn === 'w' ? 'Black' : 'White'} wins.`;
             gameOver = true;
-
-            // ✅ Show popup
             setTimeout(() => {
-              alert(`Checkmate!\nPlayer ${currentTurn === 'w' ? 'Black' : 'White'} won't play further.`);
+              alert(`Checkmate!`);
             }, 100);
-
-            // ✅ Play mp3
             document.getElementById("checkmateAudio").play();
           }
         } else {
