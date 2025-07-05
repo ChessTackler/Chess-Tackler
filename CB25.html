@@ -63,7 +63,7 @@
     .piece {
       max-width: 90%;
       max-height: 90%;
-      cursor: pointer;
+      cursor: grab;
       user-select: none;
     }
     .checkmate-message {
@@ -101,18 +101,17 @@
 
   <script>
     const board = document.getElementById("chessBoard");
-    const moveHistory = document.getElementById("moveHistory");
+    const moveHistoryDiv = document.getElementById("moveHistory");
     const checkmateMessage = document.getElementById("checkmateMessage");
+    const audio = document.getElementById("checkmateAudio");
 
     let boardState = [];
-    let selected = null;
-    let moveHistoryList = [];
+    let moveHistory = [];
     let currentTurn = 'w';
+    let selected = null;
     let gameOver = false;
-    let castlingRights = {
-      w: { K: true, Q: true },
-      b: { K: true, Q: true }
-    };
+    let historyIndex = -1;
+    let castlingRights = { w: { K: true, Q: true }, b: { K: true, Q: true } };
 
     function initializeBoard() {
       const initial = [
@@ -123,102 +122,152 @@
         ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
       ];
       boardState = JSON.parse(JSON.stringify(initial));
+      moveHistory = [];
+      historyIndex = -1;
     }
 
     function renderBoard() {
       board.innerHTML = "";
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
           const square = document.createElement("div");
-          square.className = `square ${(row + col) % 2 === 0 ? "light" : "dark"}`;
-          square.dataset.row = row;
-          square.dataset.col = col;
+          square.className = `square ${(r + c) % 2 === 0 ? "light" : "dark"}`;
+          square.dataset.row = r;
+          square.dataset.col = c;
 
-          const piece = boardState[row][col];
+          const piece = boardState[r][c];
           if (piece) {
             const img = document.createElement("img");
             img.src = `${piece}.png`;
             img.className = "piece";
-            img.draggable = false;
+            img.draggable = true;
+            img.ondragstart = (e) => {
+              e.dataTransfer.setData("fromRow", r);
+              e.dataTransfer.setData("fromCol", c);
+            };
             square.appendChild(img);
           }
 
-          square.addEventListener("click", () => onSquareClick(row, col));
+          square.onclick = () => onSquareClick(r, c);
+          square.ondragover = e => e.preventDefault();
+          square.ondrop = e => {
+            e.preventDefault();
+            const fromRow = parseInt(e.dataTransfer.getData("fromRow"));
+            const fromCol = parseInt(e.dataTransfer.getData("fromCol"));
+            tryMove(fromRow, fromCol, r, c);
+          };
+
           board.appendChild(square);
         }
       }
     }
 
-    function onSquareClick(row, col) {
+    function onSquareClick(r, c) {
       if (gameOver) return;
-      const clickedPiece = boardState[row][col];
+      const piece = boardState[r][c];
       if (selected) {
-        const [fromRow, fromCol] = selected;
-        const piece = boardState[fromRow][fromCol];
-
-        if (piece && piece[0] === currentTurn && isLegalMove(piece, fromRow, fromCol, row, col)) {
-          movePiece(fromRow, fromCol, row, col);
+        const [sr, sc] = selected;
+        if (boardState[sr][sc] && boardState[sr][sc][0] === currentTurn &&
+            isLegalMove(boardState[sr][sc], sr, sc, r, c)) {
+          tryMove(sr, sc, r, c);
           selected = null;
-          currentTurn = currentTurn === 'w' ? 'b' : 'w';
-
-          if (isCheckmate(currentTurn)) {
-            checkmateMessage.textContent = `Checkmate! Player ${currentTurn === 'w' ? 'Black' : 'White'} wins.`;
-            gameOver = true;
-            setTimeout(() => {
-              alert(`Checkmate!`);
-            }, 100);
-            document.getElementById("checkmateAudio").play();
-          }
         } else {
           selected = null;
         }
-        renderBoard();
-      } else if (clickedPiece && clickedPiece[0] === currentTurn) {
-        selected = [row, col];
-        highlightMoves(row, col);
+      } else if (piece && piece[0] === currentTurn) {
+        selected = [r, c];
       }
     }
 
-    function isKingInCheck(color) {
-      let kingRow = -1, kingCol = -1;
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          if (boardState[r][c] === color + 'K') {
-            kingRow = r;
-            kingCol = c;
-            break;
-          }
-        }
+    function tryMove(fromRow, fromCol, toRow, toCol) {
+      if (gameOver) return;
+      const piece = boardState[fromRow][fromCol];
+      if (!piece || piece[0] !== currentTurn) return;
+      if (!isLegalMove(piece, fromRow, fromCol, toRow, toCol)) return;
+
+      const prevBoard = JSON.parse(JSON.stringify(boardState));
+      boardState[toRow][toCol] = piece;
+      boardState[fromRow][fromCol] = null;
+
+      moveHistory = moveHistory.slice(0, historyIndex + 1);
+      moveHistory.push({ board: prevBoard, turn: currentTurn });
+      historyIndex++;
+
+      currentTurn = currentTurn === 'w' ? 'b' : 'w';
+      renderBoard();
+      updateHistoryText();
+
+      if (isCheckmate(currentTurn)) {
+        checkmateMessage.textContent = `Checkmate! Player ${currentTurn === 'w' ? 'Black' : 'White'} wins.`;
+        alert("Checkmate!");
+        audio.play();
+        gameOver = true;
       }
-      const opponent = color === 'w' ? 'b' : 'w';
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const piece = boardState[r][c];
-          if (piece && piece[0] === opponent && isLegalMove(piece, r, c, kingRow, kingCol)) {
-            return true;
-          }
-        }
+    }
+
+    function updateHistoryText() {
+      moveHistoryDiv.textContent = `Moves: ${historyIndex + 1}`;
+    }
+
+    function isLegalMove(piece, fr, fc, tr, tc) {
+      const target = boardState[tr][tc];
+      if (target && target[0] === piece[0]) return false;
+      const dr = tr - fr, dc = tc - fc;
+      switch (piece[1]) {
+        case 'P':
+          const dir = piece[0] === 'w' ? -1 : 1;
+          const startRow = piece[0] === 'w' ? 6 : 1;
+          if (dc === 0 && !target) {
+            if (dr === dir || (dr === 2 * dir && fr === startRow && !boardState[fr + dir][fc])) return true;
+          } else if (Math.abs(dc) === 1 && dr === dir && target && target[0] !== piece[0]) return true;
+          break;
+        case 'R':
+          if (dr === 0 || dc === 0) return isPathClear(fr, fc, tr, tc);
+          break;
+        case 'N':
+          if ((Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2)) return true;
+          break;
+        case 'B':
+          if (Math.abs(dr) === Math.abs(dc)) return isPathClear(fr, fc, tr, tc);
+          break;
+        case 'Q':
+          if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isPathClear(fr, fc, tr, tc);
+          break;
+        case 'K':
+          if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) return true;
+          break;
       }
       return false;
     }
 
+    function isPathClear(fr, fc, tr, tc) {
+      const dr = Math.sign(tr - fr);
+      const dc = Math.sign(tc - fc);
+      let r = fr + dr, c = fc + dc;
+      while (r !== tr || c !== tc) {
+        if (boardState[r][c]) return false;
+        r += dr;
+        c += dc;
+      }
+      return true;
+    }
+
     function isCheckmate(color) {
-      if (!isKingInCheck(color)) return false;
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
           const piece = boardState[r][c];
           if (piece && piece[0] === color) {
             for (let tr = 0; tr < 8; tr++) {
               for (let tc = 0; tc < 8; tc++) {
-                const original = boardState[tr][tc];
-                const fr = boardState[r][c];
+                const backup = boardState[tr][tc];
+                const original = boardState[r][c];
                 if (isLegalMove(piece, r, c, tr, tc)) {
                   boardState[tr][tc] = piece;
                   boardState[r][c] = null;
-                  const stillInCheck = isKingInCheck(color);
-                  boardState[r][c] = fr;
-                  boardState[tr][tc] = original;
-                  if (!stillInCheck) return false;
+                  const kingSafe = !isKingInCheck(color);
+                  boardState[r][c] = original;
+                  boardState[tr][tc] = backup;
+                  if (kingSafe) return false;
                 }
               }
             }
@@ -228,108 +277,48 @@
       return true;
     }
 
-    function movePiece(fromRow, fromCol, toRow, toCol) {
-      const piece = boardState[fromRow][fromCol];
-      if (piece[1] === 'K' && Math.abs(toCol - fromCol) === 2) {
-        const isKingside = toCol === 6;
-        const rookFrom = isKingside ? 7 : 0;
-        const rookTo = isKingside ? 5 : 3;
-        boardState[toRow][rookTo] = boardState[toRow][rookFrom];
-        boardState[toRow][rookFrom] = null;
-      }
-      boardState[toRow][toCol] = piece;
-      boardState[fromRow][fromCol] = null;
+    function isKingInCheck(color) {
+      let kr = -1, kc = -1;
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+          if (boardState[r][c] === color + 'K') [kr, kc] = [r, c];
 
-      if (piece[1] === 'K') castlingRights[piece[0]] = { K: false, Q: false };
-      if (piece[1] === 'R') {
-        if (fromCol === 0) castlingRights[piece[0]].Q = false;
-        if (fromCol === 7) castlingRights[piece[0]].K = false;
-      }
+      const opponent = color === 'w' ? 'b' : 'w';
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++)
+          if (boardState[r][c]?.[0] === opponent)
+            if (isLegalMove(boardState[r][c], r, c, kr, kc)) return true;
 
-      addToHistory(piece, fromRow, fromCol, toRow, toCol);
-    }
-
-    function highlightMoves(row, col) {
-      renderBoard();
-      const squares = document.querySelectorAll('.square');
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          if (isLegalMove(boardState[row][col], row, col, r, c)) {
-            const idx = r * 8 + c;
-            squares[idx].classList.add('highlight');
-          }
-        }
-      }
-    }
-
-    function isLegalMove(piece, fromRow, fromCol, toRow, toCol) {
-      if (!piece) return false;
-      const target = boardState[toRow][toCol];
-      if (target && target[0] === piece[0]) return false;
-      const dr = toRow - fromRow;
-      const dc = toCol - fromCol;
-      switch (piece[1]) {
-        case 'P':
-          const dir = piece[0] === 'w' ? -1 : 1;
-          const startRow = piece[0] === 'w' ? 6 : 1;
-          if (dc === 0 && !target) {
-            if (dr === dir || (dr === 2 * dir && fromRow === startRow && !boardState[fromRow + dir][fromCol])) return true;
-          } else if (Math.abs(dc) === 1 && dr === dir && target && target[0] !== piece[0]) return true;
-          break;
-        case 'R':
-          if (dr === 0 || dc === 0) return isPathClear(fromRow, fromCol, toRow, toCol);
-          break;
-        case 'N':
-          if ((Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2)) return true;
-          break;
-        case 'B':
-          if (Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
-          break;
-        case 'Q':
-          if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
-          break;
-        case 'K':
-          if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) {
-            const tempTarget = boardState[toRow][toCol];
-            boardState[toRow][toCol] = piece;
-            boardState[fromRow][fromCol] = null;
-            const inCheck = isKingInCheck(piece[0]);
-            boardState[fromRow][fromCol] = piece;
-            boardState[toRow][toCol] = tempTarget;
-            return !inCheck;
-          }
-          if (fromRow === toRow && Math.abs(dc) === 2) {
-            const side = dc > 0 ? 'K' : 'Q';
-            const rookCol = side === 'K' ? 7 : 0;
-            const rook = boardState[fromRow][rookCol];
-            if (castlingRights[piece[0]][side] && rook === piece[0] + 'R' && isPathClear(fromRow, fromCol, toRow, toCol)) return true;
-          }
-          break;
-      }
       return false;
     }
 
-    function isPathClear(fromRow, fromCol, toRow, toCol) {
-      const dr = Math.sign(toRow - fromRow);
-      const dc = Math.sign(toCol - fromCol);
-      let r = fromRow + dr;
-      let c = fromCol + dc;
-      while (r !== toRow || c !== toCol) {
-        if (boardState[r][c]) return false;
-        r += dr;
-        c += dc;
+    document.getElementById("prevBtn").onclick = () => {
+      if (historyIndex >= 0) {
+        const state = moveHistory[historyIndex];
+        boardState = JSON.parse(JSON.stringify(state.board));
+        currentTurn = state.turn;
+        historyIndex--;
+        renderBoard();
+        updateHistoryText();
+        gameOver = false;
+        checkmateMessage.textContent = "";
       }
-      return true;
-    }
+    };
 
-    function addToHistory(piece, fromRow, fromCol, toRow, toCol) {
-      const move = `${piece} ${String.fromCharCode(97 + fromCol)}${8 - fromRow}→${String.fromCharCode(97 + toCol)}${8 - toRow}`;
-      moveHistoryList.push(move);
-      moveHistory.textContent = moveHistoryList.join(", ");
-    }
+    document.getElementById("nextBtn").onclick = () => {
+      if (historyIndex + 1 < moveHistory.length) {
+        historyIndex++;
+        const state = moveHistory[historyIndex];
+        boardState = JSON.parse(JSON.stringify(state.board));
+        currentTurn = state.turn === 'w' ? 'b' : 'w';
+        renderBoard();
+        updateHistoryText();
+      }
+    };
 
     initializeBoard();
     renderBoard();
+    updateHistoryText();
   </script>
 </body>
 </html>
