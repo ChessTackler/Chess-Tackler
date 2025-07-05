@@ -101,18 +101,23 @@
     <img src="CT logo.png" alt="CT Logo" />
     <h1>Chess Board – Chess Tackler</h1>
   </div>
+
   <div class="history" id="moveHistory"></div>
   <div class="board" id="chessBoard"></div>
+
   <div class="nav-buttons">
     <button id="prevBtn" title="Previous Move">◀</button>
     <button id="nextBtn" title="Next Move">▶</button>
   </div>
+
   <button class="ai-button" id="aiBtn">🧠 AI Assistant</button>
   <div class="ai-strategy" id="aiStrategy"></div>
+
   <div class="checkmate-message" id="checkmateMessage"></div>
   <audio id="checkmateAudio" src="correct.mp3" preload="auto"></audio>
 
-    <script>
+  <!-- Core JavaScript -->
+      <script>
     const board = document.getElementById("chessBoard");
     const moveHistory = document.getElementById("moveHistory");
     const checkmateMessage = document.getElementById("checkmateMessage");
