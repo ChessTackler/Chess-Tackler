@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fixed Chess Board - 40px</title>
+  <title>Chess Tackler</title>
   <style>
     body {
       display: flex;
@@ -14,6 +14,28 @@
       font-family: Arial, sans-serif;
       background-color: #f9f9f9;
     }
+
+    /* Header styling */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      width: 100%;
+      max-width: 600px;
+      box-sizing: border-box;
+      background-color: #333;
+      color: white;
+    }
+    .header img {
+      width: 32px;
+      height: 32px;
+      margin-right: 10px;
+    }
+    .header h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
     .history {
       width: 95%;
       max-width: 400px;
@@ -25,6 +47,7 @@
       font-size: 14px;
       text-align: center;
     }
+
     .board {
       display: grid;
       grid-template-columns: repeat(8, 40px);
@@ -32,6 +55,7 @@
       border: 2px solid #333;
       margin: 10px 0;
     }
+
     .square {
       width: 40px;
       height: 40px;
@@ -39,15 +63,19 @@
       align-items: center;
       justify-content: center;
     }
+
     .light {
       background-color: #f0d9b5;
     }
+
     .dark {
       background-color: #b58863;
     }
+
     .highlight {
       outline: 2px solid yellow;
     }
+
     .piece {
       max-width: 90%;
       max-height: 90%;
@@ -57,6 +85,13 @@
   </style>
 </head>
 <body>
+
+  <!-- Header with logo and title -->
+  <div class="header">
+    <img src="CT logo.png" alt="CT Logo" />
+    <h1>Chess Board – Chess Tackler</h1>
+  </div>
+
   <div class="history" id="moveHistory"></div>
   <div class="board" id="chessBoard"></div>
 
