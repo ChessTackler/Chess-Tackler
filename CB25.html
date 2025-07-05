@@ -26,17 +26,17 @@
     }
     .board {
       display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      width: 100vmin;
-      height: 100vmin;
-      max-width: 100vmin;
-      max-height: 100vmin;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
       border: 2px solid #333;
+      margin-top: 10px;
     }
     .square {
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 60px;
+      height: 60px;
       position: relative;
     }
     .light {
@@ -80,7 +80,7 @@ function initializeBoard() {
     Array(8).fill("wP"),
     ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
   ];
-  boardState = JSON.parse(JSON.stringify(initial)); // deep copy
+  boardState = JSON.parse(JSON.stringify(initial));
 }
 
 function renderBoard() {
@@ -143,7 +143,6 @@ function movePiece(fromRow, fromCol, toRow, toCol) {
   boardState[toRow][toCol] = piece;
   boardState[fromRow][fromCol] = null;
 
-  // Update castling rights
   if (piece[1] === 'K') castlingRights[piece[0]] = { K: false, Q: false };
   if (piece[1] === 'R') {
     if (fromCol === 0) castlingRights[piece[0]].Q = false;
