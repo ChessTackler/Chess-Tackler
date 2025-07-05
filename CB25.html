@@ -51,6 +51,7 @@
       margin: 10px 0;
     }
     .square {
+      position: relative;
       width: 40px;
       height: 40px;
       display: flex;
@@ -60,6 +61,7 @@
     .light { background-color: #f0d9b5; }
     .dark { background-color: #b58863; }
     .highlight { outline: 2px solid yellow; }
+    .selected { outline: 2px solid blue; }
     .piece {
       max-width: 90%;
       max-height: 90%;
@@ -116,316 +118,275 @@
   <div class="checkmate-message" id="checkmateMessage"></div>
   <audio id="checkmateAudio" src="correct.mp3" preload="auto"></audio>
 
-  <!-- Core JavaScript -->
-      <script>
-    const board = document.getElementById("chessBoard");
-    const moveHistory = document.getElementById("moveHistory");
-    const checkmateMessage = document.getElementById("checkmateMessage");
+<script>
+const board = document.getElementById("chessBoard");
+const moveHistory = document.getElementById("moveHistory");
+const checkmateMessage = document.getElementById("checkmateMessage");
 
-    let boardState = [];
-    let selected = null;
-    let moveHistoryList = [];
-    let currentTurn = 'w';
-    let gameOver = false;
-    let castlingRights = {
-      w: { K: true, Q: true },
-      b: { K: true, Q: true }
-    };
+let boardState = [];
+let selected = null;
+let moveHistoryList = [];
+let currentTurn = 'w';
+let gameOver = false;
+let castlingRights = {
+  w: { K: true, Q: true },
+  b: { K: true, Q: true }
+};
+let boardSnapshots = [];
+let currentMoveIndex = -1;
 
-    let boardSnapshots = [];
-    let currentMoveIndex = -1;
+function cloneBoard(s) {
+  return JSON.parse(JSON.stringify(s));
+}
 
-    function initializeBoard() {
-      const initial = [
-        ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-        Array(8).fill("bP"),
-        ...Array(4).fill(Array(8).fill(null)),
-        Array(8).fill("wP"),
-        ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-      ];
-      boardState = JSON.parse(JSON.stringify(initial));
-      boardSnapshots.push(JSON.parse(JSON.stringify(boardState)));
-      currentMoveIndex = 0;
+function initializeBoard() {
+  const initial = [
+    ["bR","bN","bB","bQ","bK","bB","bN","bR"],
+    Array(8).fill("bP"),
+    ...Array(4).fill(Array(8).fill(null)),
+    Array(8).fill("wP"),
+    ["wR","wN","wB","wQ","wK","wB","wN","wR"]
+  ];
+  boardState = cloneBoard(initial);
+  boardSnapshots = [cloneBoard(boardState)];
+  currentMoveIndex = 0;
+  currentTurn = 'w';
+  moveHistoryList = [];
+  gameOver = false;
+  checkmateMessage.textContent = "";
+}
+
+function renderBoard() {
+  board.innerHTML = "";
+  for (let r=0; r<8; r++){
+    for (let c=0; c<8; c++){
+      const sq = document.createElement("div");
+      sq.className = `square ${(r+c)%2===0?"light":"dark"}`;
+      sq.dataset.row = r;
+      sq.dataset.col = c;
+
+      if (selected && selected[0]===r && selected[1]===c) {
+        sq.classList.add("selected");
+      }
+
+      const piece = boardState[r][c];
+      if (piece) {
+        const img = document.createElement("img");
+        img.src = piece + ".png";
+        img.alt = piece;
+        img.className = "piece";
+        img.draggable = false;
+        sq.appendChild(img);
+      }
+
+      sq.addEventListener("click", () => onSquareClick(r, c));
+      board.appendChild(sq);
     }
+  }
+}
 
-    function renderBoard() {
-      board.innerHTML = "";
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-          const square = document.createElement("div");
-          square.className = `square ${(row + col) % 2 === 0 ? "light" : "dark"}`;
-          square.dataset.row = row;
-          square.dataset.col = col;
-
-          const piece = boardState[row][col];
-          if (piece) {
-            const img = document.createElement("img");
-            img.src = `${piece}.png`;
-            img.className = "piece";
-            img.draggable = false;
-            square.appendChild(img);
-          }
-
-          square.addEventListener("click", () => onSquareClick(row, col));
-          board.appendChild(square);
+function onSquareClick(r,c) {
+  if (gameOver) return;
+  const clicked = boardState[r][c];
+  if (selected) {
+    const [fr,fc] = selected;
+    const piece = boardState[fr][fc];
+    if (piece && piece[0] === currentTurn && isLegalMove(piece, fr,fc, r,c)) {
+      // simulate and check king safety
+      const saved = cloneBoard(boardState);
+      movePiece(fr,fc,r,c);
+      if (!isKingInCheck(currentTurn)) {
+        // handle promotion
+        const p = boardState[r][c];
+        if (p[1]==='P' && (r===0 || r===7)) {
+          boardState[r][c] = p[0] + 'Q';
         }
-      }
-    }
-
-    function onSquareClick(row, col) {
-      if (gameOver) return;
-      const clickedPiece = boardState[row][col];
-      if (selected) {
-        const [fromRow, fromCol] = selected;
-        const piece = boardState[fromRow][fromCol];
-
-        if (piece && piece[0] === currentTurn && isLegalMove(piece, fromRow, fromCol, row, col)) {
-          movePiece(fromRow, fromCol, row, col);
-          selected = null;
-          currentTurn = currentTurn === 'w' ? 'b' : 'w';
-
-          if (isCheckmate(currentTurn)) {
-            checkmateMessage.textContent = `Checkmate! Player ${currentTurn === 'w' ? 'Black' : 'White'} wins.`;
-            gameOver = true;
-            setTimeout(() => {
-              alert(`Checkmate!`);
-            }, 100);
-            document.getElementById("checkmateAudio").play();
-          }
-        } else {
-          selected = null;
-        }
-        renderBoard();
-      } else if (clickedPiece && clickedPiece[0] === currentTurn) {
-        selected = [row, col];
-        highlightMoves(row, col);
-      }
-    }
-
-    function isKingInCheck(color) {
-      let kingRow = -1, kingCol = -1;
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          if (boardState[r][c] === color + 'K') {
-            kingRow = r;
-            kingCol = c;
-          }
-        }
-      }
-      const opponent = color === 'w' ? 'b' : 'w';
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const piece = boardState[r][c];
-          if (piece && piece[0] === opponent && isLegalMove(piece, r, c, kingRow, kingCol)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    function isCheckmate(color) {
-      if (!isKingInCheck(color)) return false;
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const piece = boardState[r][c];
-          if (piece && piece[0] === color) {
-            for (let tr = 0; tr < 8; tr++) {
-              for (let tc = 0; tc < 8; tc++) {
-                const original = boardState[tr][tc];
-                const fr = boardState[r][c];
-                if (isLegalMove(piece, r, c, tr, tc)) {
-                  boardState[tr][tc] = piece;
-                  boardState[r][c] = null;
-                  const stillInCheck = isKingInCheck(color);
-                  boardState[r][c] = fr;
-                  boardState[tr][tc] = original;
-                  if (!stillInCheck) return false;
-                }
-              }
-            }
-          }
-        }
-      }
-      return true;
-    }
-
-    function movePiece(fromRow, fromCol, toRow, toCol) {
-      const piece = boardState[fromRow][fromCol];
-      if (piece[1] === 'K' && Math.abs(toCol - fromCol) === 2) {
-        const isKingside = toCol === 6;
-        const rookFrom = isKingside ? 7 : 0;
-        const rookTo = isKingside ? 5 : 3;
-        boardState[toRow][rookTo] = boardState[toRow][rookFrom];
-        boardState[toRow][rookFrom] = null;
-      }
-      boardState[toRow][toCol] = piece;
-      boardState[fromRow][fromCol] = null;
-
-      if (piece[1] === 'K') castlingRights[piece[0]] = { K: false, Q: false };
-      if (piece[1] === 'R') {
-        if (fromCol === 0) castlingRights[piece[0]].Q = false;
-        if (fromCol === 7) castlingRights[piece[0]].K = false;
-      }
-
-      addToHistory(piece, fromRow, fromCol, toRow, toCol);
-
-      boardSnapshots = boardSnapshots.slice(0, currentMoveIndex + 1);
-      boardSnapshots.push(JSON.parse(JSON.stringify(boardState)));
-      currentMoveIndex++;
-    }
-
-    function highlightMoves(row, col) {
-      renderBoard();
-      const squares = document.querySelectorAll('.square');
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          if (isLegalMove(boardState[row][col], row, col, r, c)) {
-            const idx = r * 8 + c;
-            squares[idx].classList.add('highlight');
-          }
-        }
-      }
-    }
-
-    function isLegalMove(piece, fromRow, fromCol, toRow, toCol) {
-      if (!piece) return false;
-      const target = boardState[toRow][toCol];
-      if (target && target[0] === piece[0]) return false;
-      const dr = toRow - fromRow;
-      const dc = toCol - fromCol;
-      switch (piece[1]) {
-        case 'P':
-          const dir = piece[0] === 'w' ? -1 : 1;
-          const startRow = piece[0] === 'w' ? 6 : 1;
-          if (dc === 0 && !target) {
-            if (dr === dir || (dr === 2 * dir && fromRow === startRow && !boardState[fromRow + dir][fromCol])) return true;
-          } else if (Math.abs(dc) === 1 && dr === dir && target && target[0] !== piece[0]) return true;
-          break;
-        case 'R':
-          if (dr === 0 || dc === 0) return isPathClear(fromRow, fromCol, toRow, toCol);
-          break;
-        case 'N':
-          if ((Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2)) return true;
-          break;
-        case 'B':
-          if (Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
-          break;
-        case 'Q':
-          if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
-          break;
-        case 'K':
-          if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) {
-            const tempTarget = boardState[toRow][toCol];
-            boardState[toRow][toCol] = piece;
-            boardState[fromRow][fromCol] = null;
-            const inCheck = isKingInCheck(piece[0]);
-            boardState[fromRow][fromCol] = piece;
-            boardState[toRow][toCol] = tempTarget;
-            return !inCheck;
-          }
-          if (fromRow === toRow && Math.abs(dc) === 2) {
-            const side = dc > 0 ? 'K' : 'Q';
-            const rookCol = side === 'K' ? 7 : 0;
-            const rook = boardState[fromRow][rookCol];
-            if (castlingRights[piece[0]][side] && rook === piece[0] + 'R' && isPathClear(fromRow, fromCol, toRow, toCol)) return true;
-          }
-          break;
-      }
-      return false;
-    }
-
-    function isPathClear(fromRow, fromCol, toRow, toCol) {
-      const dr = Math.sign(toRow - fromRow);
-      const dc = Math.sign(toCol - fromCol);
-      let r = fromRow + dr;
-      let c = fromCol + dc;
-      while (r !== toRow || c !== toCol) {
-        if (boardState[r][c]) return false;
-        r += dr;
-        c += dc;
-      }
-      return true;
-    }
-
-    function addToHistory(piece, fromRow, fromCol, toRow, toCol) {
-      const move = `${piece} ${String.fromCharCode(97 + fromCol)}${8 - fromRow}→${String.fromCharCode(97 + toCol)}${8 - toRow}`;
-      moveHistoryList.push(move);
-      moveHistory.textContent = moveHistoryList.join(", ");
-    }
-
-    document.getElementById("prevBtn").addEventListener("click", () => {
-      if (currentMoveIndex > 0) {
-        currentMoveIndex--;
-        boardState = JSON.parse(JSON.stringify(boardSnapshots[currentMoveIndex]));
-        renderBoard();
-      }
-    });
-
-    document.getElementById("nextBtn").addEventListener("click", () => {
-      if (currentMoveIndex < boardSnapshots.length - 1) {
+        addToHistory(p,fr,fc,r,c);
+        boardSnapshots = boardSnapshots.slice(0, currentMoveIndex+1);
+        boardSnapshots.push(cloneBoard(boardState));
         currentMoveIndex++;
-        boardState = JSON.parse(JSON.stringify(boardSnapshots[currentMoveIndex]));
-        renderBoard();
+        currentTurn = currentTurn==='w'? 'b':'w';
+        if (isCheckmate(currentTurn)) {
+          checkmateMessage.textContent = `Checkmate! Player ${currentTurn==='w'?'Black':'White'} wins.`;
+          gameOver=true;
+          setTimeout(()=>{ alert("Checkmate!"); },100);
+          document.getElementById("checkmateAudio").play();
+        }
+      } else {
+        boardState = saved;
       }
-    });
+    }
+    selected = null;
+    renderBoard();
+  } else if (clicked && clicked[0] === currentTurn) {
+    selected = [r,c];
+    renderBoard();
+    highlightMoves(r,c);
+  }
+}
 
-    document.getElementById("aiBtn").addEventListener("click", () => {
-      const scoreTable = { P: 1, N: 3, B: 3, R: 5, Q: 9, K: 0 };
-      let whiteScore = 0, blackScore = 0;
-      let whiteCenterControl = 0, blackCenterControl = 0;
+function isPathClear(fr,fc,tr,tc) { /* unchanged */ 
+  const dr = Math.sign(tr-fr), dc = Math.sign(tc-fc);
+  let r=fr+dr, c=fc+dc;
+  while(r!==tr||c!==tc) {
+    if(boardState[r][c]) return false;
+    r+=dr; c+=dc;
+  }
+  return true;
+}
 
-      const centerSquares = [[3, 3], [3, 4], [4, 3], [4, 4]];
+function isLegalMove(piece, fr,fc,tr,tc) {
+  if (!piece) return false;
+  const target = boardState[tr][tc];
+  if (target && target[0] === piece[0]) return false;
+  const dr = tr - fr, dc = tc - fc;
+  switch(piece[1]) {
+    case 'P': {
+      const dir = piece[0]==='w'? -1:1;
+      const start = piece[0]==='w'? 6:1;
+      if(dc===0 && !target && (dr===dir || (dr===2*dir && fr===start && !boardState[fr+dir][fc]))) return true;
+      if(Math.abs(dc)===1 && dr===dir && target && target[0]!==piece[0]) return true;
+      return false;
+    }
+    case 'R': if(dr===0||dc===0) return isPathClear(fr,fc,tr,tc); break;
+    case 'N': if((Math.abs(dr)===2&&Math.abs(dc)===1)||(Math.abs(dr)===1&&Math.abs(dc)===2)) return true; break;
+    case 'B': if(Math.abs(dr)===Math.abs(dc)) return isPathClear(fr,fc,tr,tc); break;
+    case 'Q': if(dr===0||dc===0||Math.abs(dr)===Math.abs(dc)) return isPathClear(fr,fc,tr,tc); break;
+    case 'K': {
+      if(Math.abs(dr)<=1&&Math.abs(dc)<=1) return true;
+      if(fr===tr && Math.abs(dc)===2) {
+        const side = dc>0? 'K':'Q';
+        const rookCol = side==='K'?7:0;
+        const rook = boardState[fr][rookCol];
+        if(castlingRights[piece[0]][side] && rook===piece[0]+'R' && isPathClear(fr,fc,tr,tc)) return true;
+      }
+    }
+  }
+  return false;
+}
 
-      for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-          const piece = boardState[r][c];
-          if (piece) {
-            const color = piece[0];
-            const type = piece[1];
-            const score = scoreTable[type] || 0;
-            if (color === 'w') {
-              whiteScore += score;
-              centerSquares.forEach(([cr, cc]) => {
-                if (r === cr && c === cc) whiteCenterControl++;
-              });
-            } else {
-              blackScore += score;
-              centerSquares.forEach(([cr, cc]) => {
-                if (r === cr && c === cc) blackCenterControl++;
-              });
-            }
-          }
+function isKingInCheck(color) {
+  let kr=-1,kc=-1;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++)
+    if(boardState[r][c]===color+'K'){kr=r;kc=c;}
+  const opp = color==='w'? 'b':'w';
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p = boardState[r][c];
+    if(p && p[0]===opp && isLegalMove(p,r,c,kr,kc)) return true;
+  }
+  return false;
+}
+
+function isCheckmate(color) {
+  if(!isKingInCheck(color)) return false;
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p = boardState[r][c];
+    if(p && p[0]===color) {
+      for(let tr=0;tr<8;tr++)for(let tc=0;tc<8;tc++){
+        if(isLegalMove(p,r,c,tr,tc)) {
+          const saved = cloneBoard(boardState);
+          boardState[tr][tc] = p;
+          boardState[r][c] = null;
+          const still = isKingInCheck(color);
+          boardState = saved;
+          if(!still) return false;
         }
       }
+    }
+  }
+  return true;
+}
 
-      let advice = "";
-      const materialDiff = whiteScore - blackScore;
-      const centerDiff = whiteCenterControl - blackCenterControl;
+function movePiece(fr,fc,tr,tc) {
+  const p = boardState[fr][fc];
+  if(p[1]==='K' && Math.abs(tc-fc)===2){
+    const isKS = tc>fc;
+    const rf = isKS ? 7 : 0;
+    const rt = isKS ? 5 : 3;
+    boardState[tr][rt] = boardState[tr][rf];
+    boardState[tr][rf] = null;
+  }
+  boardState[tr][tc] = p;
+  boardState[fr][fc] = null;
+  if(p[1]==='K') castlingRights[p[0]] = {K:false,Q:false};
+  if(p[1]==='R') {
+    if(fc===0) castlingRights[p[0]].Q=false;
+    if(fc===7) castlingRights[p[0]].K=false;
+  }
+}
 
-      if (currentTurn === 'w') {
-        advice += "<strong>White's Turn:</strong><br>";
-        advice += materialDiff >= 2 ? "You have a material advantage. Trade pieces to simplify the game.<br>" :
-                 materialDiff <= -2 ? "You're behind in material. Avoid trades and seek tactical shots.<br>" :
-                 "Material is even. Focus on activity and control.<br>";
-        advice += centerDiff > 0 ? "You control the center. Use that to launch attacks.<br>" :
-                 centerDiff < 0 ? "You lack central control. Try to occupy the center.<br>" :
-                 "Both players are contesting the center.<br>";
-      } else {
-        advice += "<strong>Black's Turn:</strong><br>";
-        advice += materialDiff <= -2 ? "You have a material advantage. Trade down and simplify.<br>" :
-                 materialDiff >= 2 ? "You're behind in material. Look for counterplay.<br>" :
-                 "Material is balanced. Stay alert and look for opportunities.<br>";
-        advice += centerDiff < 0 ? "You control the center. Keep your grip and expand.<br>" :
-                 centerDiff > 0 ? "You're behind in central control. Try to challenge it.<br>" :
-                 "The center is balanced. Watch for breaks.<br>";
-      }
+function highlightMoves(r,c) {
+  renderBoard();
+  const sqs = document.querySelectorAll('.square');
+  for(let tr=0; tr<8; tr++)for(let tc=0; tc<8; tc++){
+    if(isLegalMove(boardState[r][c],r,c,tr,tc)){
+      const idx = tr*8+tc;
+      sqs[idx].classList.add('highlight');
+    }
+  }
+}
 
-      document.getElementById("aiStrategy").innerHTML = advice;
-    });
+function addToHistory(p,fr,fc,tr,tc) {
+  const move = `${p} ${String.fromCharCode(97+fc)}${8-fr}→${String.fromCharCode(97+tc)}${8-tr}`;
+  moveHistoryList.push(move);
+  moveHistory.textContent = moveHistoryList.join(", ");
+}
 
-    initializeBoard();
+document.getElementById("prevBtn").addEventListener("click",()=>{
+  if(currentMoveIndex>0){
+    currentMoveIndex--;
+    boardState = cloneBoard(boardSnapshots[currentMoveIndex]);
+    currentTurn = currentMoveIndex % 2 === 0 ? 'w' : 'b';
     renderBoard();
-  </script>
+  }
+});
+document.getElementById("nextBtn").addEventListener("click",()=>{
+  if(currentMoveIndex<boardSnapshots.length-1){
+    currentMoveIndex++;
+    boardState = cloneBoard(boardSnapshots[currentMoveIndex]);
+    currentTurn = currentMoveIndex % 2 === 0 ? 'w' : 'b';
+    renderBoard();
+  }
+});
+
+document.getElementById("aiBtn").addEventListener("click",()=>{
+  const scoreTable={P:1,N:3,B:3,R:5,Q:9,K:0};
+  let wS=0,bS=0, wC=0,bC=0;
+  const center=[[3,3],[3,4],[4,3],[4,4]];
+  for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+    const p=boardState[r][c];
+    if(p){
+      if(p[0]==='w') { wS+=scoreTable[p[1]]||0;
+        center.forEach(([cr,cc])=>{ if(r===cr&&c===cc) wC++; });
+      } else {
+        bS+=scoreTable[p[1]]||0;
+        center.forEach(([cr,cc])=>{ if(r===cr&&c===cc) bC++; });
+      }
+    }
+  }
+  let advice="", md=wS-bS, cd=wC-bC;
+  if(currentTurn==='w'){
+    advice += "<strong>White's Turn:</strong><br>";
+    advice += md>=2 ? "You have material advantage. Trade pieces.<br>"
+            : md<=-2 ? "Material down. Avoid trades.<br>"
+            : "Material even. Focus on activity.<br>";
+    advice += cd>0 ? "Control center lead—use it.<br>"
+            : cd<0 ? "You're behind in center—occupy it.<br>"
+            : "Center even—stay flexible.<br>";
+  } else {
+    advice += "<strong>Black's Turn:</strong><br>";
+    advice += md<=-2 ? "You have material advantage. Simplify.<br>"
+            : md>=2 ? "Material down. Look for tactics.<br>"
+            : "Material even. Stay alert.<br>";
+    advice += cd<0 ? "You control center—expand your grip.<br>"
+            : cd>0 ? "You're behind center—challenge it.<br>"
+            : "Center balanced—watch for breaks.<br>";
+  }
+  document.getElementById("aiStrategy").innerHTML = advice;
+});
+
+initializeBoard();
+renderBoard();
+</script>
 </body>
 </html>
