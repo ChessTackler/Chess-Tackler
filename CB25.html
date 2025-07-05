@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -77,193 +78,231 @@
   <div class="header">
     <img src="CT logo.png" alt="CT Logo" />
     <h1>Chess Board – Chess Tackler</h1>
-  </div>  <div class="history" id="moveHistory"></div>
+  </div>
+
+  <div class="history" id="moveHistory"></div>
   <div class="board" id="chessBoard"></div>
-  <div class="checkmate-message" id="checkmateMessage"></div><script>
-const board = document.getElementById("chessBoard");
-const moveHistory = document.getElementById("moveHistory");
-const checkmateMessage = document.getElementById("checkmateMessage");
+  <div class="checkmate-message" id="checkmateMessage"></div>
 
-let boardState = [];
-let selected = null;
-let moveHistoryList = [];
-let currentTurn = 'w';
-let gameOver = false;
-let castlingRights = {
-  w: { K: true, Q: true },
-  b: { K: true, Q: true }
-};
+  <script>
+    const board = document.getElementById("chessBoard");
+    const moveHistory = document.getElementById("moveHistory");
+    const checkmateMessage = document.getElementById("checkmateMessage");
 
-function initializeBoard() {
-  const initial = [
-    ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-    Array(8).fill("bP"),
-    ...Array(4).fill(Array(8).fill(null)),
-    Array(8).fill("wP"),
-    ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-  ];
-  boardState = JSON.parse(JSON.stringify(initial));
-}
+    let boardState = [];
+    let selected = null;
+    let moveHistoryList = [];
+    let currentTurn = 'w';
+    let gameOver = false;
+    let castlingRights = {
+      w: { K: true, Q: true },
+      b: { K: true, Q: true }
+    };
 
-function renderBoard() {
-  board.innerHTML = "";
-  for (let row = 0; row < 8; row++) {
-    for (let col = 0; col < 8; col++) {
-      const square = document.createElement("div");
-      square.className = `square ${(row + col) % 2 === 0 ? "light" : "dark"}`;
-      square.dataset.row = row;
-      square.dataset.col = col;
+    function initializeBoard() {
+      const initial = [
+        ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
+        Array(8).fill("bP"),
+        ...Array(4).fill(Array(8).fill(null)),
+        Array(8).fill("wP"),
+        ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
+      ];
+      boardState = JSON.parse(JSON.stringify(initial));
+    }
 
-      const piece = boardState[row][col];
-      if (piece) {
-        const img = document.createElement("img");
-        img.src = `${piece}.png`;
-        img.className = "piece";
-        img.draggable = false;
-        square.appendChild(img);
+    function renderBoard() {
+      board.innerHTML = "";
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const square = document.createElement("div");
+          square.className = `square ${(row + col) % 2 === 0 ? "light" : "dark"}`;
+          square.dataset.row = row;
+          square.dataset.col = col;
+
+          const piece = boardState[row][col];
+          if (piece) {
+            const img = document.createElement("img");
+            img.src = `${piece}.png`;
+            img.className = "piece";
+            img.draggable = false;
+            square.appendChild(img);
+          }
+
+          square.addEventListener("click", () => onSquareClick(row, col));
+          board.appendChild(square);
+        }
+      }
+    }
+
+    function onSquareClick(row, col) {
+      if (gameOver) return;
+      const clickedPiece = boardState[row][col];
+      if (selected) {
+        const [fromRow, fromCol] = selected;
+        const piece = boardState[fromRow][fromCol];
+
+        if (piece && piece[0] === currentTurn && isLegalMove(piece, fromRow, fromCol, row, col)) {
+          movePiece(fromRow, fromCol, row, col);
+          selected = null;
+          currentTurn = currentTurn === 'w' ? 'b' : 'w';
+
+          if (isCheckmate(currentTurn)) {
+            checkmateMessage.textContent = `Checkmate! Player ${currentTurn === 'w' ? 'Black' : 'White'} wins.`;
+            gameOver = true;
+          }
+        } else {
+          selected = null;
+        }
+        renderBoard();
+      } else if (clickedPiece && clickedPiece[0] === currentTurn) {
+        selected = [row, col];
+        highlightMoves(row, col);
+      }
+    }
+
+    function isKingInCheck(color) {
+      let kingRow = -1, kingCol = -1;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (boardState[r][c] === color + 'K') {
+            kingRow = r;
+            kingCol = c;
+            break;
+          }
+        }
+      }
+      const opponent = color === 'w' ? 'b' : 'w';
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = boardState[r][c];
+          if (piece && piece[0] === opponent && isLegalMove(piece, r, c, kingRow, kingCol)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function isCheckmate(color) {
+      if (!isKingInCheck(color)) return false;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = boardState[r][c];
+          if (piece && piece[0] === color) {
+            for (let tr = 0; tr < 8; tr++) {
+              for (let tc = 0; tc < 8; tc++) {
+                const original = boardState[tr][tc];
+                const fr = boardState[r][c];
+                if (isLegalMove(piece, r, c, tr, tc)) {
+                  boardState[tr][tc] = piece;
+                  boardState[r][c] = null;
+                  const stillInCheck = isKingInCheck(color);
+                  boardState[r][c] = fr;
+                  boardState[tr][tc] = original;
+                  if (!stillInCheck) return false;
+                }
+              }
+            }
+          }
+        }
+      }
+      return true;
+    }
+
+    function movePiece(fromRow, fromCol, toRow, toCol) {
+      const piece = boardState[fromRow][fromCol];
+      if (piece[1] === 'K' && Math.abs(toCol - fromCol) === 2) {
+        const isKingside = toCol === 6;
+        const rookFrom = isKingside ? 7 : 0;
+        const rookTo = isKingside ? 5 : 3;
+        boardState[toRow][rookTo] = boardState[toRow][rookFrom];
+        boardState[toRow][rookFrom] = null;
+      }
+      boardState[toRow][toCol] = piece;
+      boardState[fromRow][fromCol] = null;
+
+      if (piece[1] === 'K') castlingRights[piece[0]] = { K: false, Q: false };
+      if (piece[1] === 'R') {
+        if (fromCol === 0) castlingRights[piece[0]].Q = false;
+        if (fromCol === 7) castlingRights[piece[0]].K = false;
       }
 
-      square.addEventListener("click", () => onSquareClick(row, col));
-      board.appendChild(square);
+      addToHistory(piece, fromRow, fromCol, toRow, toCol);
     }
-  }
-}
 
-function onSquareClick(row, col) {
-  if (gameOver) return;
-  const clickedPiece = boardState[row][col];
-  if (selected) {
-    const [fromRow, fromCol] = selected;
-    const piece = boardState[fromRow][fromCol];
-
-    if (piece && piece[0] === currentTurn && isLegalMove(piece, fromRow, fromCol, row, col)) {
-      movePiece(fromRow, fromCol, row, col);
-      selected = null;
-      currentTurn = currentTurn === 'w' ? 'b' : 'w';
-
-      if (isCheckmate(currentTurn)) {
-        checkmateMessage.textContent = `Checkmate! Player ${currentTurn === 'w' ? 'Black' : 'White'} wins.`;
-        gameOver = true;
-      }
-    } else {
-      selected = null;
-    }
-    renderBoard();
-  } else if (clickedPiece && clickedPiece[0] === currentTurn) {
-    selected = [row, col];
-    highlightMoves(row, col);
-  }
-}
-
-function isCheckmate(color) {
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const piece = boardState[r][c];
-      if (piece && piece[0] === color) {
-        for (let tr = 0; tr < 8; tr++) {
-          for (let tc = 0; tc < 8; tc++) {
-            if (isLegalMove(piece, r, c, tr, tc)) return false;
+    function highlightMoves(row, col) {
+      renderBoard();
+      const squares = document.querySelectorAll('.square');
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (isLegalMove(boardState[row][col], row, col, r, c)) {
+            const idx = r * 8 + c;
+            squares[idx].classList.add('highlight');
           }
         }
       }
     }
-  }
-  return true;
-}
 
-function movePiece(fromRow, fromCol, toRow, toCol) {
-  const piece = boardState[fromRow][fromCol];
-  if (piece[1] === 'K' && Math.abs(toCol - fromCol) === 2) {
-    const isKingside = toCol === 6;
-    const rookFrom = isKingside ? 7 : 0;
-    const rookTo = isKingside ? 5 : 3;
-    boardState[toRow][rookTo] = boardState[toRow][rookFrom];
-    boardState[toRow][rookFrom] = null;
-  }
-  boardState[toRow][toCol] = piece;
-  boardState[fromRow][fromCol] = null;
-
-  if (piece[1] === 'K') castlingRights[piece[0]] = { K: false, Q: false };
-  if (piece[1] === 'R') {
-    if (fromCol === 0) castlingRights[piece[0]].Q = false;
-    if (fromCol === 7) castlingRights[piece[0]].K = false;
-  }
-
-  addToHistory(piece, fromRow, fromCol, toRow, toCol);
-}
-
-function highlightMoves(row, col) {
-  renderBoard();
-  const squares = document.querySelectorAll('.square');
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      if (isLegalMove(boardState[row][col], row, col, r, c)) {
-        const idx = r * 8 + c;
-        squares[idx].classList.add('highlight');
+    function isLegalMove(piece, fromRow, fromCol, toRow, toCol) {
+      if (!piece) return false;
+      const target = boardState[toRow][toCol];
+      if (target && target[0] === piece[0]) return false;
+      const dr = toRow - fromRow;
+      const dc = toCol - fromCol;
+      switch (piece[1]) {
+        case 'P':
+          const dir = piece[0] === 'w' ? -1 : 1;
+          const startRow = piece[0] === 'w' ? 6 : 1;
+          if (dc === 0 && !target) {
+            if (dr === dir || (dr === 2 * dir && fromRow === startRow && !boardState[fromRow + dir][fromCol])) return true;
+          } else if (Math.abs(dc) === 1 && dr === dir && target && target[0] !== piece[0]) return true;
+          break;
+        case 'R':
+          if (dr === 0 || dc === 0) return isPathClear(fromRow, fromCol, toRow, toCol);
+          break;
+        case 'N':
+          if ((Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2)) return true;
+          break;
+        case 'B':
+          if (Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
+          break;
+        case 'Q':
+          if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
+          break;
+        case 'K':
+          if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) return true;
+          if (fromRow === toRow && Math.abs(dc) === 2) {
+            const side = dc > 0 ? 'K' : 'Q';
+            const rookCol = side === 'K' ? 7 : 0;
+            const rook = boardState[fromRow][rookCol];
+            if (castlingRights[piece[0]][side] && rook === piece[0] + 'R' && isPathClear(fromRow, fromCol, toRow, toCol)) return true;
+          }
+          break;
       }
+      return false;
     }
-  }
-}
 
-function isLegalMove(piece, fromRow, fromCol, toRow, toCol) {
-  if (!piece) return false;
-  const target = boardState[toRow][toCol];
-  if (target && target[0] === piece[0]) return false;
-  const dr = toRow - fromRow;
-  const dc = toCol - fromCol;
-  switch (piece[1]) {
-    case 'P':
-      const dir = piece[0] === 'w' ? -1 : 1;
-      const startRow = piece[0] === 'w' ? 6 : 1;
-      if (dc === 0 && !target) {
-        if (dr === dir || (dr === 2 * dir && fromRow === startRow && !boardState[fromRow + dir][fromCol])) return true;
-      } else if (Math.abs(dc) === 1 && dr === dir && target && target[0] !== piece[0]) return true;
-      break;
-    case 'R':
-      if (dr === 0 || dc === 0) return isPathClear(fromRow, fromCol, toRow, toCol);
-      break;
-    case 'N':
-      if ((Math.abs(dr) === 2 && Math.abs(dc) === 1) || (Math.abs(dr) === 1 && Math.abs(dc) === 2)) return true;
-      break;
-    case 'B':
-      if (Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
-      break;
-    case 'Q':
-      if (dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc)) return isPathClear(fromRow, fromCol, toRow, toCol);
-      break;
-    case 'K':
-      if (Math.abs(dr) <= 1 && Math.abs(dc) <= 1) return true;
-      if (fromRow === toRow && Math.abs(dc) === 2) {
-        const side = dc > 0 ? 'K' : 'Q';
-        const rookCol = side === 'K' ? 7 : 0;
-        const rook = boardState[fromRow][rookCol];
-        if (castlingRights[piece[0]][side] && rook === piece[0] + 'R' && isPathClear(fromRow, fromCol, toRow, toCol)) return true;
+    function isPathClear(fromRow, fromCol, toRow, toCol) {
+      const dr = Math.sign(toRow - fromRow);
+      const dc = Math.sign(toCol - fromCol);
+      let r = fromRow + dr;
+      let c = fromCol + dc;
+      while (r !== toRow || c !== toCol) {
+        if (boardState[r][c]) return false;
+        r += dr;
+        c += dc;
       }
-      break;
-  }
-  return false;
-}
+      return true;
+    }
 
-function isPathClear(fromRow, fromCol, toRow, toCol) {
-  const dr = Math.sign(toRow - fromRow);
-  const dc = Math.sign(toCol - fromCol);
-  let r = fromRow + dr;
-  let c = fromCol + dc;
-  while (r !== toRow || c !== toCol) {
-    if (boardState[r][c]) return false;
-    r += dr;
-    c += dc;
-  }
-  return true;
-}
+    function addToHistory(piece, fromRow, fromCol, toRow, toCol) {
+      const move = `${piece} ${String.fromCharCode(97 + fromCol)}${8 - fromRow}→${String.fromCharCode(97 + toCol)}${8 - toRow}`;
+      moveHistoryList.push(move);
+      moveHistory.textContent = moveHistoryList.join(", ");
+    }
 
-function addToHistory(piece, fromRow, fromCol, toRow, toCol) {
-  const move = `${piece} ${String.fromCharCode(97 + fromCol)}${8 - fromRow}→${String.fromCharCode(97 + toCol)}${8 - toRow}`;
-  moveHistoryList.push(move);
-  moveHistory.textContent = moveHistoryList.join(", ");
-}
-
-initializeBoard();
-renderBoard();
-</script></body>
+    initializeBoard();
+    renderBoard();
+  </script>
+</body>
 </html>
