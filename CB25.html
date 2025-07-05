@@ -71,6 +71,15 @@
     let whiteTurn = true;
     let moveHistory = [];
 
+    let hasMoved = {
+      wK: false,
+      wR1: false,
+      wR2: false,
+      bK: false,
+      bR1: false,
+      bR2: false
+    };
+
     const initialPosition = [
       ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'],
       ['bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP'],
@@ -141,12 +150,54 @@
 
       if (selected) {
         const [fromRow, fromCol] = selected;
-        if ((row !== fromRow || col !== fromCol)) {
-          const legal = true; // Add real logic later
-          if (legal) {
+        const selectedPiece = boardState[fromRow][fromCol];
+
+        // Handle castling
+        if (selectedPiece === (whiteTurn ? 'wK' : 'bK') && fromRow === row && Math.abs(col - fromCol) === 2) {
+          if (col > fromCol && !hasMoved[selectedPiece] && !hasMoved[whiteTurn ? 'wR2' : 'bR2']) {
+            // Kingside
+            boardState[row][4] = '';
+            boardState[row][6] = selectedPiece;
+            boardState[row][7] = '';
+            boardState[row][5] = whiteTurn ? 'wR' : 'bR';
+            hasMoved[selectedPiece] = true;
+            hasMoved[whiteTurn ? 'wR2' : 'bR2'] = true;
             recordMove(fromRow, fromCol, row, col);
-            boardState[row][col] = boardState[fromRow][fromCol];
+            whiteTurn = !whiteTurn;
+            selected = null;
+            renderPieces();
+            return;
+          } else if (col < fromCol && !hasMoved[selectedPiece] && !hasMoved[whiteTurn ? 'wR1' : 'bR1']) {
+            // Queenside
+            boardState[row][4] = '';
+            boardState[row][2] = selectedPiece;
+            boardState[row][0] = '';
+            boardState[row][3] = whiteTurn ? 'wR' : 'bR';
+            hasMoved[selectedPiece] = true;
+            hasMoved[whiteTurn ? 'wR1' : 'bR1'] = true;
+            recordMove(fromRow, fromCol, row, col);
+            whiteTurn = !whiteTurn;
+            selected = null;
+            renderPieces();
+            return;
+          }
+        }
+
+        if ((row !== fromRow || col !== fromCol)) {
+          const legal = true; // Improve this with proper logic
+          if (legal) {
+            boardState[row][col] = selectedPiece;
             boardState[fromRow][fromCol] = '';
+
+            // Update hasMoved for castling tracking
+            if (selectedPiece === 'wK') hasMoved.wK = true;
+            if (selectedPiece === 'bK') hasMoved.bK = true;
+            if (selectedPiece === 'wR' && fromCol === 0 && fromRow === 7) hasMoved.wR1 = true;
+            if (selectedPiece === 'wR' && fromCol === 7 && fromRow === 7) hasMoved.wR2 = true;
+            if (selectedPiece === 'bR' && fromCol === 0 && fromRow === 0) hasMoved.bR1 = true;
+            if (selectedPiece === 'bR' && fromCol === 7 && fromRow === 0) hasMoved.bR2 = true;
+
+            recordMove(fromRow, fromCol, row, col);
             selected = null;
             whiteTurn = !whiteTurn;
             renderPieces();
